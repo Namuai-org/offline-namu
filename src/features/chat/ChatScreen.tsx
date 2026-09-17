@@ -386,7 +386,15 @@ export function ChatScreen(): React.JSX.Element {
           </View>
 
           <ReturnToAnswerBanner currentConversationId={conversationId} />
-          {readOnly ? <StatusNotice tone="warning" message={t('chat.recoveryReadOnly')} code="DATABASE_RECOVERY" /> : null}
+          {readOnly ? (
+            <StatusNotice
+              tone="warning"
+              title={errorCopy('DATABASE_RECOVERY').title}
+              message={t('chat.recoveryReadOnly')}
+              code="DATABASE_RECOVERY"
+              action={{label: errorCopy('DATABASE_RECOVERY').action, onPress: () => navigation.navigate('Privacy')}}
+            />
+          ) : null}
           {!readOnly && install.state === 'absent' ? (
             <StatusNotice
               tone="info"

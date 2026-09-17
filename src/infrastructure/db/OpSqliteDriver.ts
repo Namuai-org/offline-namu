@@ -17,14 +17,23 @@ class OpSqliteDriver implements SqlDriver {
     return toResult(await this.db.execute(sql, params));
   }
 
+  /**
+   * Asynchronous BEGIN/COMMIT so the `synchronous=FULL` fsync never runs on
+   * the JS thread (NFR-006). op-sqlite's own `transaction()` issues BEGIN and
+   * COMMIT synchronously. Callers are already serialized by Database.write().
+   */
   async transaction<T>(fn: (tx: SqlExecutor) => Promise<T>): Promise<T> {
-    let value!: T;
-    await this.db.transaction(async tx => {
-      value = await fn({
-        execute: async (sql, params) => toResult(await tx.execute(sql, params)),
+    await this.db.execute('BEGIN IMMEDIATE');
+    try {
+      const value = await fn({
+        execute: async (sql, params) => toResult(await this.db.execute(sql, params)),
       });
-    });
-    return value;
+      await this.db.execute('COMMIT');
+      return value;
+    } catch (error) {
+      await this.db.execute('ROLLBACK').catch(() => undefined);
+      throw error;
+    }
   }
 
   async close(): Promise<void> {

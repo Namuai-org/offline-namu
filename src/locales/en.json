@@ -26,12 +26,8 @@
     "ha": "Hausa",
     "fr": "French",
     "en": "English",
-    "note": "Changes apply to the next answer. Earlier answers stay as they are."
-  },
-  "tabs": {
-    "chat": "Chat",
-    "conversations": "Conversations",
-    "settings": "Settings"
+    "note": "Changes apply to the next answer. Earlier answers stay as they are.",
+    "autoShort": "Automatic"
   },
   "intro": {
     "chooseLanguage": "Choose your language",
@@ -150,7 +146,11 @@
     "announceComplete": "Answer complete",
     "announceInterrupted": "Answer stopped",
     "loadOlder": "Loading earlier messages…",
-    "recoveryReadOnly": "Saved chats are in recovery mode. You can read and export them."
+    "recoveryReadOnly": "Saved chats are in recovery mode. You can read and export them.",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "thinking": "Thinking…",
+    "messageOptions": "Message options"
   },
   "conversations": {
     "title": "Conversations",
@@ -173,7 +173,11 @@
     "inTitle": "Title",
     "inYou": "Your message",
     "inNamu": "Namu's answer",
-    "deleteDeferred": "Namu could not confirm that the answer stopped, so nothing was deleted. Close and reopen the app, then try again."
+    "deleteDeferred": "Namu could not confirm that the answer stopped, so nothing was deleted. Close and reopen the app, then try again.",
+    "groupToday": "Today",
+    "groupYesterday": "Yesterday",
+    "groupWeek": "Previous 7 days",
+    "groupOlder": "Older"
   },
   "export": {
     "warningTitle": "Export leaves Namu's protection",
@@ -206,7 +210,12 @@
     "privacy": "Privacy and data",
     "help": "Help",
     "about": "About",
-    "aboutAi": "About the AI"
+    "aboutAi": "About the AI",
+    "sectionGeneral": "General",
+    "sectionData": "Storage and data",
+    "sectionSupport": "Help and about",
+    "answerLanguage": "Answer language",
+    "version": "Version"
   },
   "storage": {
     "title": "Offline storage",

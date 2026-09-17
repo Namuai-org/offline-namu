@@ -2,7 +2,7 @@ appId: org.namuai.offline.internal
 ---
 - launchApp
 - tapOn:
-    id: "tab-conversations"
+    id: "chat-menu"
 - assertVisible:
     id: "conversations-screen"
 - tapOn:

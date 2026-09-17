@@ -87,6 +87,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
+  /// The root view is white until the first React frame; keep the brand field
+  /// (Harmattan / Ink) so launch screen, loading and app are one surface.
+  override func customize(_ rootView: RCTRootView) {
+    super.customize(rootView)
+    rootView.backgroundColor = PrivacyCover.backgroundColor
+  }
+
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     self.bundleURL()
   }

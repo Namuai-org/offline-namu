@@ -26,12 +26,8 @@
     "ha": "Haoussa",
     "fr": "Français",
     "en": "Anglais",
-    "note": "Le changement s'applique à la prochaine réponse. Les réponses précédentes ne changent pas."
-  },
-  "tabs": {
-    "chat": "Discussion",
-    "conversations": "Conversations",
-    "settings": "Réglages"
+    "note": "Le changement s'applique à la prochaine réponse. Les réponses précédentes ne changent pas.",
+    "autoShort": "Automatique"
   },
   "intro": {
     "chooseLanguage": "Choisissez votre langue",
@@ -150,7 +146,11 @@
     "announceComplete": "Réponse terminée",
     "announceInterrupted": "Réponse arrêtée",
     "loadOlder": "Chargement des messages précédents…",
-    "recoveryReadOnly": "Les discussions enregistrées sont en mode récupération. Vous pouvez les lire et les exporter."
+    "recoveryReadOnly": "Les discussions enregistrées sont en mode récupération. Vous pouvez les lire et les exporter.",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "thinking": "Réflexion…",
+    "messageOptions": "Options du message"
   },
   "conversations": {
     "title": "Conversations",
@@ -173,7 +173,11 @@
     "inTitle": "Titre",
     "inYou": "Votre message",
     "inNamu": "Réponse de Namu",
-    "deleteDeferred": "Namu n'a pas pu confirmer l'arrêt de la réponse : rien n'a été supprimé. Fermez puis rouvrez l'application, et réessayez."
+    "deleteDeferred": "Namu n'a pas pu confirmer l'arrêt de la réponse : rien n'a été supprimé. Fermez puis rouvrez l'application, et réessayez.",
+    "groupToday": "Aujourd’hui",
+    "groupYesterday": "Hier",
+    "groupWeek": "7 derniers jours",
+    "groupOlder": "Plus ancien"
   },
   "export": {
     "warningTitle": "L'export quitte la protection de Namu",
@@ -206,7 +210,12 @@
     "privacy": "Confidentialité et données",
     "help": "Aide",
     "about": "À propos",
-    "aboutAi": "À propos de l'IA"
+    "aboutAi": "À propos de l'IA",
+    "sectionGeneral": "Général",
+    "sectionData": "Stockage et données",
+    "sectionSupport": "Aide et informations",
+    "answerLanguage": "Langue des réponses",
+    "version": "Version"
   },
   "storage": {
     "title": "Stockage hors ligne",

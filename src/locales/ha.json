@@ -26,12 +26,8 @@
     "ha": "Hausa",
     "fr": "Faransanci",
     "en": "Turanci",
-    "note": "Canjin zai fara aiki daga amsa ta gaba. Amsoshin da suka gabata ba za su canja ba."
-  },
-  "tabs": {
-    "chat": "Hira",
-    "conversations": "Tattaunawa",
-    "settings": "Saituna"
+    "note": "Canjin zai fara aiki daga amsa ta gaba. Amsoshin da suka gabata ba za su canja ba.",
+    "autoShort": "Ta atomatik"
   },
   "intro": {
     "chooseLanguage": "Zaɓi harshenka",
@@ -150,7 +146,11 @@
     "announceComplete": "Amsa ta kammala",
     "announceInterrupted": "Amsa ta tsaya",
     "loadOlder": "Ana loda saƙonnin baya…",
-    "recoveryReadOnly": "Hirarrakin da aka adana suna yanayin farfaɗowa. Za ka iya karanta su da fitar da su."
+    "recoveryReadOnly": "Hirarrakin da aka adana suna yanayin farfaɗowa. Za ka iya karanta su da fitar da su.",
+    "openMenu": "Buɗe menu",
+    "closeMenu": "Rufe menu",
+    "thinking": "Ina tunani…",
+    "messageOptions": "Zaɓuɓɓukan saƙo"
   },
   "conversations": {
     "title": "Tattaunawa",
@@ -173,7 +173,11 @@
     "inTitle": "Take",
     "inYou": "Saƙonka",
     "inNamu": "Amsar Namu",
-    "deleteDeferred": "Namu ya kasa tabbatar da cewa amsar ta tsaya, saboda haka ba a share komai ba. Ka rufe manhajar ka sake buɗe ta, sannan ka sake gwadawa."
+    "deleteDeferred": "Namu ya kasa tabbatar da cewa amsar ta tsaya, saboda haka ba a share komai ba. Ka rufe manhajar ka sake buɗe ta, sannan ka sake gwadawa.",
+    "groupToday": "Yau",
+    "groupYesterday": "Jiya",
+    "groupWeek": "Kwanaki 7 da suka wuce",
+    "groupOlder": "Na da"
   },
   "export": {
     "warningTitle": "Abin da aka fitar ya bar kariyar Namu",
@@ -206,7 +210,12 @@
     "privacy": "Sirri da bayanai",
     "help": "Taimako",
     "about": "Game da",
-    "aboutAi": "Game da AI"
+    "aboutAi": "Game da AI",
+    "sectionGeneral": "Gabaɗaya",
+    "sectionData": "Ajiya da bayanai",
+    "sectionSupport": "Taimako da bayani",
+    "answerLanguage": "Harshen amsa",
+    "version": "Siga"
   },
   "storage": {
     "title": "Ma'ajin AI marar intanet",

@@ -36,7 +36,7 @@ export function OnboardingScreen(): React.JSX.Element {
   const finish = async () => {
     // A failed preference write must not strand the user on S01.
     await services.setPreference('onboardingComplete', true).catch(() => undefined);
-    navigation.reset({index: 1, routes: [{name: 'Tabs'}, {name: 'Setup'}]});
+    navigation.reset({index: 1, routes: [{name: 'Home'}, {name: 'Setup'}]});
   };
 
   const wordmark = (

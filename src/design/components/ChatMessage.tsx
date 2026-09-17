@@ -1,41 +1,62 @@
 import React from 'react';
 import {Pressable, Text, View} from 'react-native';
 import {useNamuTheme} from '../theme';
-import {fonts, radii, spacing, typeScale} from '../tokens';
+import {fonts, spacing, typeScale} from '../tokens';
 import {detectDirection} from '../markdown/direction';
 import {MarkdownView} from '../markdown/MarkdownView';
 import {NamuIcon, type IconName} from '../icons/NamuIcon';
 import {NamuIconButton} from './NamuIconButton';
 import {NamuText} from './NamuText';
+import {ThinkingDot} from './ThinkingDot';
 
-/** S04: user text sits in a subtle surface bubble, aligned to the end edge. */
+/** Trailing marker of text that is still being written. */
+const STREAM_CARET = ` ${String.fromCharCode(0x25cf)}`;
+
+/**
+ * S04: user text sits in a subtle surface bubble, aligned to the end edge.
+ * Long-press opens the message options (copy); assistive technology gets the
+ * same action without a gesture.
+ */
 export const UserMessage = React.memo(function UserMessage({
   text,
   authorLabel,
   copyLabel,
+  pending = false,
   onCopy,
+  onLongPress,
 }: {
   text: string;
   authorLabel: string;
   copyLabel: string;
+  /** Shown immediately on Send, before the durable commit (CHAT-001). */
+  pending?: boolean;
   onCopy: () => void;
+  onLongPress?: () => void;
 }) {
   const {colors} = useNamuTheme();
   const direction = detectDirection(text);
   return (
-    <View style={{alignItems: 'flex-end', gap: spacing.xs}}>
-      <View
+    <View style={{alignItems: 'flex-end'}}>
+      <Pressable
         accessible
         accessibilityLabel={`${authorLabel}: ${text}`}
-        style={{
-          maxWidth: '88%',
+        accessibilityActions={[{name: 'copy', label: copyLabel}]}
+        onAccessibilityAction={event => {
+          if (event.nativeEvent.actionName === 'copy') {
+            onCopy();
+          }
+        }}
+        onLongPress={onLongPress}
+        delayLongPress={350}
+        style={({pressed}) => ({
+          maxWidth: '82%',
           backgroundColor: colors.surfaceAlt,
-          borderRadius: radii.surface,
+          borderRadius: 22,
           paddingHorizontal: spacing.lg,
-          paddingVertical: spacing.md,
-        }}>
+          paddingVertical: 10,
+          opacity: pending ? 0.7 : pressed && onLongPress ? 0.8 : 1,
+        })}>
         <Text
-          selectable
           style={{
             fontFamily: fonts.regular,
             fontSize: typeScale.body.fontSize,
@@ -46,8 +67,7 @@ export const UserMessage = React.memo(function UserMessage({
           }}>
           {text}
         </Text>
-      </View>
-      <NamuIconButton icon="content_copy" label={copyLabel} tone="secondary" onPress={onCopy} />
+      </Pressable>
     </View>
   );
 });
@@ -70,6 +90,7 @@ export const AssistantMessage = React.memo(function AssistantMessage({
   streaming,
   statusLabel,
   statusTone = 'secondary',
+  thinkingLabel,
   note,
   actions,
   onLinkPress,
@@ -80,6 +101,8 @@ export const AssistantMessage = React.memo(function AssistantMessage({
   /** Visible text status: answering, stopped, interrupted, length limit… */
   statusLabel?: string;
   statusTone?: 'secondary' | 'error';
+  /** While streaming with no text yet: a pulsing dot with this quiet label. */
+  thinkingLabel?: string;
   note?: string;
   actions: AssistantAction[];
   onLinkPress: (href: string, hostname: string) => void;
@@ -104,10 +127,18 @@ export const AssistantMessage = React.memo(function AssistantMessage({
               textAlign: direction === 'rtl' ? 'right' : 'left',
             }}>
             {text}
+            <Text style={{color: colors.textSecondary, fontSize: 12}}>{STREAM_CARET}</Text>
           </Text>
         ) : (
           <MarkdownView source={text} onLinkPress={onLinkPress} />
         )
+      ) : streaming && thinkingLabel ? (
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.sm, minHeight: 28}}>
+          <ThinkingDot />
+          <NamuText variant="label" tone="secondary">
+            {thinkingLabel}
+          </NamuText>
+        </View>
       ) : null}
       {statusLabel ? (
         <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.xs}}>
@@ -123,12 +154,12 @@ export const AssistantMessage = React.memo(function AssistantMessage({
         </NamuText>
       ) : null}
       {actions.length > 0 ? (
-        <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs}}>
+        <View style={{flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: spacing.xs, marginStart: -8}}>
           {actions.map(action =>
             action.showLabel ? (
               <LabeledAction key={action.label} {...action} />
             ) : (
-              <NamuIconButton key={action.label} icon={action.icon} label={action.label} tone="secondary" onPress={action.onPress} testID={action.testID} />
+              <NamuIconButton key={action.label} compact icon={action.icon} label={action.label} tone="secondary" onPress={action.onPress} testID={action.testID} />
             ),
           )}
         </View>
@@ -149,12 +180,12 @@ function LabeledAction({icon, label, onPress, testID}: AssistantAction) {
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.xs,
-        minHeight: 48,
-        paddingHorizontal: spacing.md,
+        minHeight: 36,
+        paddingHorizontal: spacing.sm,
         opacity: pressed ? 0.6 : 1,
       })}>
-      <NamuIcon name={icon} size={18} color={colors.link} />
-      <NamuText variant="label" weight="medium" tone="action">
+      <NamuIcon name={icon} size={18} color={colors.textSecondary} />
+      <NamuText variant="label" weight="medium" tone="secondary">
         {label}
       </NamuText>
     </Pressable>

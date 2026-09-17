@@ -1,16 +1,29 @@
 appId: org.namuai.offline.internal
 ---
 - launchApp
+# PA-007: Settings is reached from the drawer; each General row opens a choice list.
 - tapOn:
-    id: "tab-settings"
+    id: "chat-menu"
+- tapOn:
+    id: "drawer-settings"
+- assertVisible:
+    id: "settings-screen"
+- tapOn:
+    id: "settings-appearance"
 - tapOn:
     id: "settings-theme-dark"
+- tapOn:
+    id: "settings-app-language"
 - tapOn:
     id: "settings-language-fr"
 - assertVisible: "Réglages"
 - tapOn:
+    id: "settings-app-language"
+- tapOn:
     id: "settings-language-ha"
 - assertVisible: "Saituna"
+- tapOn:
+    id: "settings-app-language"
 - tapOn:
     id: "settings-language-en"
 - scrollUntilVisible:

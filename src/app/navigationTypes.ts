@@ -1,15 +1,9 @@
-import type {NavigatorScreenParams} from '@react-navigation/native';
-
-export type TabParamList = {
-  Chat: undefined;
-  Conversations: undefined;
-  Settings: undefined;
-};
-
 export type RootStackParamList = {
   Onboarding: undefined;
-  Tabs: NavigatorScreenParams<TabParamList> | undefined;
-  /** S02/S03 sit above the tabs (UX-001). */
+  /** Chat with the history drawer (PA-007 replaces the three tabs of UX-001). */
+  Home: undefined;
+  Settings: undefined;
+  /** S02/S03 sit above Home; history and help stay reachable (UX-001). */
   Setup: undefined;
   OfflineStorage: undefined;
   Privacy: undefined;

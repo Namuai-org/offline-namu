@@ -1,7 +1,7 @@
 import React from 'react';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 import App from '../../src/app/App';
-import {useAppStore, useChatSessionStore, useChatViewStore, useTransferStore} from '../../src/app/stores';
+import {useAppStore, useChatSessionStore, useChatViewStore, useDrawerStore, useTransferStore} from '../../src/app/stores';
 import {EMPTY_SNAPSHOT} from '../../src/domain/model/transferTypes';
 import {makeFakeWorld, type FakeWorld} from '../support/fakeAdapters';
 
@@ -13,6 +13,7 @@ beforeEach(() => {
   useTransferStore.setState({snapshot: EMPTY_SNAPSHOT});
   useChatSessionStore.setState({session: {engine: 'unloaded', active: null, blocked: null, lastError: null, unsaved: null}});
   useChatViewStore.setState({conversationId: null, targetOrdinal: null, nonce: 0});
+  useDrawerStore.setState({open: false});
   world = makeFakeWorld();
 });
 
@@ -27,6 +28,18 @@ async function bootIntoChat() {
   await waitFor(() => screen.getByTestId('setup-done'));
   await fireEvent.press(screen.getByTestId('setup-done'));
   await waitFor(() => screen.getByTestId('chat-empty'));
+}
+
+/** PA-007: history and Settings live in the drawer behind the menu button. */
+async function openDrawer() {
+  await fireEvent.press(screen.getByTestId('chat-menu'));
+  await waitFor(() => expect(useDrawerStore.getState().open).toBe(true));
+}
+
+async function openSettings() {
+  await openDrawer();
+  await fireEvent.press(screen.getByTestId('drawer-settings'));
+  await waitFor(() => screen.getByTestId('settings-screen'));
 }
 
 async function idle() {
@@ -135,7 +148,7 @@ describe('S05–S08 history and data controls', () => {
     await bootIntoChat();
     await sendMessage('Ƙasar Hausa da tarihinta');
     await idle();
-    await fireEvent.press(screen.getByTestId('tab-conversations'));
+    await openDrawer();
     await waitFor(() => screen.getAllByText('Ƙasar Hausa da tarihinta'));
     const id = useChatViewStore.getState().conversationId!;
 
@@ -171,13 +184,15 @@ describe('S05–S08 history and data controls', () => {
 
   it('changes language and theme in Settings, and never checks for updates on its own (SIG-005)', async () => {
     await bootIntoChat();
-    await fireEvent.press(screen.getByTestId('tab-settings'));
-    await waitFor(() => screen.getByTestId('settings-screen'));
+    await openSettings();
     expect(screen.queryByText(/temperature|top.?p|threads|quantization|model selector/i)).toBeNull(); // PRD-002
+    await fireEvent.press(screen.getByTestId('settings-appearance'));
     await fireEvent.press(screen.getByTestId('settings-theme-dark'));
     expect(useAppStore.getState().preferences?.theme).toBe('dark');
+    await fireEvent.press(screen.getByTestId('settings-app-language'));
     await fireEvent.press(screen.getByTestId('settings-language-fr'));
-    await waitFor(() => screen.getAllByText('Réglages'));
+    await waitFor(() => screen.getByText('Général')); // the native header title is not rendered under Jest
+    expect(screen.getByText('Langue des réponses')).toBeTruthy();
     await fireEvent.press(screen.getByTestId('settings-storage'));
     await waitFor(() => screen.getByTestId('storage-screen'));
     expect(screen.getByText('Prête')).toBeTruthy();
@@ -188,7 +203,7 @@ describe('S05–S08 history and data controls', () => {
     await bootIntoChat();
     await sendMessage('to be deleted');
     await idle();
-    await fireEvent.press(screen.getByTestId('tab-settings'));
+    await openSettings();
     await fireEvent.press(screen.getByTestId('settings-privacy'));
     await waitFor(() => screen.getByTestId('privacy-screen'));
     await fireEvent.press(screen.getByTestId('privacy-delete-conversations'));
@@ -202,7 +217,7 @@ describe('S05–S08 history and data controls', () => {
 
   it('delete all Namu data removes everything and returns to S01', async () => {
     await bootIntoChat();
-    await fireEvent.press(screen.getByTestId('tab-settings'));
+    await openSettings();
     await fireEvent.press(screen.getByTestId('settings-privacy'));
     await fireEvent.press(screen.getByTestId('privacy-delete-everything'));
     await waitFor(() => screen.getByText(/returns Namu to its first screen/));

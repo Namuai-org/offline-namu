@@ -1,26 +1,33 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {AppState, TextInput, View} from 'react-native';
+import {AppState, Pressable, TextInput, View} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {useServices} from '../../app/ServicesContext';
 import {DRAFT_MAX_CODE_POINTS, NEW_CHAT_DRAFT_KEY} from '../../data/repositories/DraftRepository';
 import {codePointLength} from '../../domain/text/graphemes';
 import {GlassSurface} from '../../design/components/GlassSurface';
-import {NamuButton} from '../../design/components/NamuButton';
 import {NamuText} from '../../design/components/NamuText';
+import {NamuIcon} from '../../design/icons/NamuIcon';
 import {useNamuTheme} from '../../design/theme';
 import {fonts, sizes, spacing, typeScale} from '../../design/tokens';
 
 const DRAFT_SAVE_DELAY_MS = 300;
 const MAX_LINES = 6;
 const COUNTER_FROM = DRAFT_MAX_CODE_POINTS * 0.9;
+/** One pill: the text field with the round send/stop button inside it. */
+const COMPOSER_RADIUS = 28;
+const BUTTON_SIZE = 40;
+const BUTTON_INSET = 7;
+const INPUT_PADDING = 15;
 
 export interface ComposerHandle {
   insert(text: string): void;
 }
 
 /**
- * S04 composer. Grows from one to six lines, then scrolls. Return inserts a
- * newline; sending is an explicit button (or hardware Ctrl/Cmd+Enter).
+ * S04 composer: a single rounded field with a round Send button inside it
+ * that becomes Stop while Namu answers. Grows from one to six lines, then
+ * scrolls. Return inserts a newline; sending is an explicit button (or
+ * hardware Ctrl/Cmd+Enter).
  * Drafts are saved 300 ms after a change and on lifecycle transitions
  * (DB-003). A draft typed during generation is kept but cannot be submitted
  * until the active generation ends.
@@ -54,6 +61,7 @@ export const Composer = React.forwardRef<
   const latestForKey = useRef('');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sending = useRef(false);
+  const [sendingNow, setSendingNow] = useState(false);
   /** The send awaiting its commit; that commit owns the draft row (CHAT-001). */
   const inFlight = useRef<{key: string; value: string} | null>(null);
 
@@ -147,6 +155,7 @@ export const Composer = React.forwardRef<
       return;
     }
     sending.current = true;
+    setSendingNow(true);
     const value = textRef.current;
     const key = keyRef.current;
     inFlight.current = {key, value};
@@ -169,6 +178,7 @@ export const Composer = React.forwardRef<
     } finally {
       inFlight.current = null;
       sending.current = false;
+      setSendingNow(false);
     }
   };
 
@@ -177,68 +187,89 @@ export const Composer = React.forwardRef<
   useEffect(() => services.device.onSendShortcut(() => void submitRef.current()), [services]);
 
   const lineHeight = typeScale.body.lineHeight;
+  // The optimistic bubble already shows the text while the commit runs; the
+  // draft itself is only cleared by a durable commit (CHAT-001).
+  const shownText = sendingNow ? '' : text;
+  const buttonDisabled = generating ? mode === 'stopping' : sendDisabled;
   return (
-    <View style={{gap: spacing.xs, paddingVertical: spacing.sm}}>
+    <View style={{gap: spacing.xs, paddingTop: spacing.sm, paddingBottom: spacing.xs}}>
       {tooLong ? (
         <NamuText variant="label" tone="error" accessibilityLiveRegion="polite">
           {t('chat.tooLongInline')}
         </NamuText>
       ) : null}
-      <View style={{flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm}}>
-        <GlassSurface
-          floating
-          radius={26}
-          style={{flex: 1}}
-          contentStyle={{
-            borderWidth: focused || tooLong ? 2 : undefined,
-            borderColor: tooLong ? colors.error : focused ? colors.focus : undefined,
-            paddingHorizontal: spacing.lg,
-            minHeight: sizes.touchTarget,
+      <GlassSurface
+        floating
+        radius={COMPOSER_RADIUS}
+        contentStyle={{
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          borderWidth: tooLong ? 2 : focused ? 1 : undefined,
+          borderColor: tooLong ? colors.error : focused ? colors.focus : undefined,
+          paddingStart: spacing.lg + 2,
+          paddingEnd: BUTTON_INSET,
+          minHeight: BUTTON_SIZE + BUTTON_INSET * 2,
+        }}>
+        <TextInput
+          testID="composer-input"
+          value={shownText}
+          onChangeText={change}
+          editable={!readOnly && !sendingNow}
+          multiline
+          autoCorrect={false}
+          spellCheck={false}
+          // Mobile Return inserts a newline; it never sends (A11Y-002).
+          submitBehavior="newline"
+          scrollEnabled
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={t('chat.composerPlaceholder')}
+          placeholderTextColor={colors.textSecondary}
+          accessibilityLabel={t('chat.composerLabel')}
+          selectionColor={colors.accent}
+          cursorColor={colors.accent}
+          style={{
+            flex: 1,
+            fontFamily: fonts.regular,
+            fontSize: typeScale.body.fontSize,
+            lineHeight,
+            color: colors.textPrimary,
+            paddingTop: INPUT_PADDING,
+            paddingBottom: INPUT_PADDING,
+            // One to six lines, then the field scrolls. Scales with text size.
+            maxHeight: lineHeight * MAX_LINES + INPUT_PADDING * 2,
+            textAlignVertical: 'center',
+          }}
+        />
+        {/* Send and Stop share one place, like the rest of the workflow (S04). */}
+        <Pressable
+          testID={generating ? 'composer-stop' : 'composer-send'}
+          accessibilityRole="button"
+          accessibilityLabel={generating ? (mode === 'stopping' ? t('chat.stopping') : t('chat.stop')) : t('chat.send')}
+          accessibilityState={{disabled: buttonDisabled}}
+          disabled={buttonDisabled}
+          hitSlop={(sizes.touchTarget - BUTTON_SIZE) / 2}
+          onPress={generating ? onStop : submit}
+          style={({pressed}) => ({
+            width: BUTTON_SIZE,
+            height: BUTTON_SIZE,
+            borderRadius: BUTTON_SIZE / 2,
+            marginBottom: BUTTON_INSET,
+            marginStart: spacing.sm,
+            alignItems: 'center',
             justifyContent: 'center',
-          }}>
-          <TextInput
-            testID="composer-input"
-            value={text}
-            onChangeText={change}
-            editable={!readOnly}
-            multiline
-            autoCorrect={false}
-            spellCheck={false}
-            // Mobile Return inserts a newline; it never sends (A11Y-002).
-            submitBehavior="newline"
-            scrollEnabled
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            placeholder={t('chat.composerPlaceholder')}
-            placeholderTextColor={colors.textSecondary}
-            accessibilityLabel={t('chat.composerLabel')}
-            selectionColor={colors.accent}
-            cursorColor={colors.accent}
-            style={{
-              fontFamily: fonts.regular,
-              fontSize: typeScale.body.fontSize,
-              lineHeight,
-              color: colors.textPrimary,
-              paddingVertical: spacing.md,
-              // One to six lines, then the field scrolls. Scales with text size.
-              maxHeight: lineHeight * MAX_LINES + spacing.md * 2,
-              textAlignVertical: 'center',
-            }}
-          />
-        </GlassSurface>
-        {generating ? (
-          <NamuButton
-            testID="composer-stop"
-            label={mode === 'stopping' ? t('chat.stopping') : t('chat.stop')}
-            icon="stop_circle"
-            variant="secondary"
-            disabled={mode === 'stopping'}
-            onPress={onStop}
-          />
-        ) : (
-          <NamuButton testID="composer-send" label={t('chat.send')} icon="send" disabled={sendDisabled} onPress={submit} />
-        )}
-      </View>
+            backgroundColor: buttonDisabled ? colors.surfaceAlt : colors.action,
+            opacity: pressed ? 0.75 : 1,
+          })}>
+          {generating ? (
+            <View
+              style={{width: 13, height: 13, borderRadius: 3, backgroundColor: buttonDisabled ? colors.textSecondary : colors.onAction}}
+            />
+          ) : (
+            <NamuIcon name="arrow_upward" size={22} color={buttonDisabled ? colors.textSecondary : colors.onAction} />
+          )}
+        </Pressable>
+      </GlassSurface>
       {length >= COUNTER_FROM ? (
         <NamuText variant="label" tone={tooLong ? 'error' : 'secondary'} align="right">
           {t('chat.counter', {count: length, max: DRAFT_MAX_CODE_POINTS})}

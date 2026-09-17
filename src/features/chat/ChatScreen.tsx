@@ -1,35 +1,37 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Linking,
   Platform,
+  Pressable,
+  ScrollView,
   View,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useServices} from '../../app/ServicesContext';
-import {useAppStore, useChatSessionStore, useChatViewStore, useTransferStore} from '../../app/stores';
+import {useAppStore, useChatSessionStore, useChatViewStore, useDrawerStore, useTransferStore} from '../../app/stores';
 import {TURN_PAGE_SIZE} from '../../data/repositories/ChatRepository';
 import {RESPONSE_LANGUAGES, type Attempt, type Conversation, type ResponseLanguage, type Turn} from '../../data/types';
 import type {ProductErrorCode} from '../../domain/inference/failures';
 import {ActionSheet} from '../../design/components/ActionSheet';
 import {AssistantMessage, UserMessage, type AssistantAction} from '../../design/components/ChatMessage';
-import {EmptyState} from '../../design/components/EmptyState';
 import {GlassHeader} from '../../design/components/GlassHeader';
 import {NamuButton} from '../../design/components/NamuButton';
 import {NamuDialog} from '../../design/components/NamuDialog';
 import {NamuIconButton} from '../../design/components/NamuIconButton';
 import {NamuText} from '../../design/components/NamuText';
 import {StatusNotice} from '../../design/components/StatusNotice';
-import {NamuIcon} from '../../design/icons/NamuIcon';
+import {NamuIcon, type IconName} from '../../design/icons/NamuIcon';
 import {safeLinkHost} from '../../design/markdown/parseMarkdown';
-import {useKeyboardVisible, useTabBarSpace, useTopBarSpace} from '../../design/layout';
+import {useKeyboardVisible, useTopBarSpace} from '../../design/layout';
 import {useNamuTheme} from '../../design/theme';
-import {sizes, spacing} from '../../design/tokens';
+import {radii, sizes, spacing} from '../../design/tokens';
 import {useErrorCopy} from '../shared/hooks';
 import {ReturnToAnswerBanner} from '../shared/ReturnToAnswerBanner';
 import {ActiveAnswer} from './ActiveAnswer';
@@ -38,16 +40,30 @@ import {Composer, type ComposerHandle} from './Composer';
 /** S04: auto-scroll only within 80 logical pixels of the bottom. */
 const NEAR_BOTTOM_PX = 80;
 /** Errors shown as a notice above the composer (others are inline labels). */
+/** Named after the colour of the mark: the dark mark goes on the light theme. */
+const LOGO = {
+  onLight: require('../../design/assets/namu-logo-dark.png'),
+  onDark: require('../../design/assets/namu-logo-light.png'),
+};
+
+const SUGGESTIONS: {icon: IconName; label: string; prompt: string; testID?: string}[] = [
+  {icon: 'lightbulb', label: 'chat.suggestExplain', prompt: 'chat.promptExplain', testID: 'suggest-explain'},
+  {icon: 'translate', label: 'chat.suggestTranslate', prompt: 'chat.promptTranslate'},
+  {icon: 'summarize', label: 'chat.suggestSummarize', prompt: 'chat.promptSummarize'},
+];
+
 const NOTICE_CODES: ProductErrorCode[] = [
   'MODEL_LOAD_FAILED', 'MEMORY_LOW', 'DEVICE_HOT', 'INPUT_TOO_LONG', 'STORAGE_WRITE_FAILED', 'CANCEL_TIMEOUT',
 ];
 
 export function ChatScreen(): React.JSX.Element {
   const {t} = useTranslation();
-  const {colors} = useNamuTheme();
+  const {colors, dark} = useNamuTheme();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const services = useServices();
   const errorCopy = useErrorCopy();
+  const openDrawer = useDrawerStore(state => state.setOpen);
   const {conversationId, targetOrdinal, nonce, open} = useChatViewStore();
   const session = useChatSessionStore(s => s.session);
   const install = useTransferStore(s => s.snapshot.install);
@@ -64,13 +80,15 @@ export function ChatScreen(): React.JSX.Element {
   const [link, setLink] = useState<{href: string; host: string} | null>(null);
   const [busyDialog, setBusyDialog] = useState(false);
   const [attemptsFor, setAttemptsFor] = useState<{turn: Turn; attempts: Attempt[]} | null>(null);
+  const [messageMenu, setMessageMenu] = useState<string | null>(null);
+  /** The message just sent, shown at once while the commit (and a cold model load) runs. */
+  const [pendingText, setPendingText] = useState<string | null>(null);
 
   const listRef = useRef<FlatList<Turn>>(null);
   const composerRef = useRef<ComposerHandle>(null);
   const loadToken = useRef(0);
   const readOnly = databaseMode === 'recovery';
   const topSpace = useTopBarSpace();
-  const tabSpace = useTabBarSpace();
   const keyboardVisible = useKeyboardVisible();
 
   // ------------------------------------------------------------------ loading
@@ -184,9 +202,20 @@ export function ChatScreen(): React.JSX.Element {
 
   const send = async (text: string): Promise<boolean> => {
     services.device.haptic('action');
-    const outcome = await services.chat.send(conversationId, text, {
-      newConversationLanguage: newChatLanguage ?? undefined,
-    });
+    setPendingText(text.trim());
+    listRef.current?.scrollToOffset({offset: 0, animated: false});
+    let outcome;
+    try {
+      outcome = await services.chat.send(conversationId, text, {
+        newConversationLanguage: newChatLanguage ?? undefined,
+      });
+    } catch (error) {
+      setPendingText(null);
+      throw error;
+    }
+    if (!outcome.accepted) {
+      setPendingText(null);
+    }
     if (outcome.accepted) {
       useAppStore.getState().touchConversations();
       if (outcome.isNewConversation || outcome.conversationId !== conversationId) {
@@ -265,6 +294,20 @@ export function ChatScreen(): React.JSX.Element {
     setShowJump(event.nativeEvent.contentOffset.y > NEAR_BOTTOM_PX);
   };
 
+  // The optimistic bubble hands over to the committed turn once it is listed.
+  const pendingListed = pendingText !== null && turns[0]?.userText === pendingText;
+  useEffect(() => {
+    if (pendingText === null) {
+      return;
+    }
+    if (pendingListed) {
+      setPendingText(null);
+      return;
+    }
+    const safety = setTimeout(() => setPendingText(null), 15000);
+    return () => clearTimeout(safety);
+  }, [pendingText, pendingListed]);
+
   // ------------------------------------------------------------------- render
 
   const latestTurnId = hasNewer ? null : turns[0]?.id ?? null;
@@ -285,7 +328,8 @@ export function ChatScreen(): React.JSX.Element {
               key={active.attemptId!}
               attemptId={active.attemptId!}
               initialText={attempt?.id === active.attemptId ? attempt.content : ''}
-              statusLabel={active.phase === 'stopping' ? t('chat.stopping') : t('chat.answering')}
+              statusLabel={active.phase === 'stopping' ? t('chat.stopping') : undefined}
+              thinkingLabel={t('chat.thinking')}
               actions={[]}
               onLinkPress={onLinkPress}
             />
@@ -314,7 +358,7 @@ export function ChatScreen(): React.JSX.Element {
           actions.push({icon: 'content_copy', label: t('chat.copyAnswer'), onPress: () => copy(text)});
         }
         if (isLatest && !readOnly && session.active === null) {
-          actions.push({icon: 'refresh', label: t('chat.tryAgain'), showLabel: true, onPress: () => void retry(turn), testID: 'try-again'});
+          actions.push({icon: 'refresh', label: t('chat.tryAgain'), onPress: () => void retry(turn), testID: 'try-again'});
         }
         if (turn.attemptCount > 1) {
           actions.push({
@@ -337,12 +381,13 @@ export function ChatScreen(): React.JSX.Element {
       }
 
       return (
-        <View style={{gap: spacing.md, paddingVertical: spacing.md}}>
+        <View style={{gap: spacing.lg, paddingVertical: spacing.md}}>
           <UserMessage
             text={turn.userText}
             authorLabel={t('chat.you')}
             copyLabel={t('chat.copyMessage')}
             onCopy={() => copy(turn.userText)}
+            onLongPress={() => setMessageMenu(turn.userText)}
           />
           {answer}
         </View>
@@ -369,6 +414,21 @@ export function ChatScreen(): React.JSX.Element {
     return null;
   }, [session.blocked, session.lastError, conversationId]);
 
+  const showEmpty = turns.length === 0 && !conversationId && pendingText === null;
+  const pendingTurn =
+    pendingText !== null && !pendingListed ? (
+      <View style={{gap: spacing.lg, paddingVertical: spacing.md}}>
+        <UserMessage
+          pending
+          text={pendingText}
+          authorLabel={t('chat.you')}
+          copyLabel={t('chat.copyMessage')}
+          onCopy={() => copy(pendingText)}
+        />
+        <AssistantMessage text="" streaming thinkingLabel={t('chat.thinking')} actions={[]} onLinkPress={onLinkPress} />
+      </View>
+    ) : null;
+
   const language = conversation?.responseLanguage ?? newChatLanguage ?? defaultLanguage;
   const modelBlocked = install.state !== 'installed' || session.blocked !== null;
 
@@ -382,8 +442,7 @@ export function ChatScreen(): React.JSX.Element {
             maxWidth: sizes.maxContentWidth,
             alignSelf: 'center',
             paddingHorizontal: sizes.phonePadding,
-            // The composer sits above the floating tab bar; the bar hides with the keyboard.
-            paddingBottom: keyboardVisible ? spacing.xs : tabSpace,
+            paddingBottom: keyboardVisible ? spacing.xs : Math.max(insets.bottom, spacing.sm),
           }}>
           <View style={{height: topSpace}} />
           <ReturnToAnswerBanner currentConversationId={conversationId} />
@@ -414,17 +473,20 @@ export function ChatScreen(): React.JSX.Element {
             />
           ) : null}
 
-          {turns.length === 0 && !conversationId ? (
-            <View style={{flex: 1, justifyContent: 'center'}}>
-              <EmptyState title={t('chat.emptyTitle')} testID="chat-empty">
-                <View style={{gap: spacing.sm, alignSelf: 'stretch'}}>
-                  {/* Suggestions insert an editable localized prompt; they never send (S04). */}
-                  <NamuButton variant="secondary" icon="lightbulb" label={t('chat.suggestExplain')} onPress={() => composerRef.current?.insert(t('chat.promptExplain'))} testID="suggest-explain" />
-                  <NamuButton variant="secondary" icon="translate" label={t('chat.suggestTranslate')} onPress={() => composerRef.current?.insert(t('chat.promptTranslate'))} />
-                  <NamuButton variant="secondary" icon="summarize" label={t('chat.suggestSummarize')} onPress={() => composerRef.current?.insert(t('chat.promptSummarize'))} />
-                </View>
-              </EmptyState>
+          {showEmpty ? (
+            <View testID="chat-empty" style={{flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg}}>
+              <Image
+                source={dark ? LOGO.onDark : LOGO.onLight}
+                resizeMode="contain"
+                accessible={false}
+                style={{width: 132, height: 48}}
+              />
+              <NamuText variant="title" align="center" accessibilityRole="header">
+                {t('chat.emptyTitle')}
+              </NamuText>
             </View>
+          ) : turns.length === 0 && !conversationId ? (
+            <View style={{flex: 1, justifyContent: 'flex-end'}}>{pendingTurn}</View>
           ) : (
             <View style={{flex: 1, marginTop: -topSpace}}>
               <FlatList
@@ -437,6 +499,8 @@ export function ChatScreen(): React.JSX.Element {
                 inverted
                 keyExtractor={turn => turn.id}
                 renderItem={renderTurn}
+                // Inverted: the header is the visual bottom, under the latest turn.
+                ListHeaderComponent={pendingTurn}
                 onScroll={onScroll}
                 scrollEventThrottle={100}
                 onEndReached={() => void loadOlder()}
@@ -447,34 +511,85 @@ export function ChatScreen(): React.JSX.Element {
                 maintainVisibleContentPosition={{minIndexForVisible: 0}}
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode="interactive"
+                showsVerticalScrollIndicator={false}
                 initialNumToRender={8}
                 windowSize={9}
                 removeClippedSubviews={Platform.OS === 'android'}
                 ListFooterComponent={hasOlder ? <NamuText variant="label" tone="secondary" align="center">{t('chat.loadOlder')}</NamuText> : null}
               />
               {showJump || hasNewer ? (
-                <View style={{position: 'absolute', bottom: spacing.sm, alignSelf: 'center'}}>
-                  <NamuButton
-                    testID="jump-to-latest"
-                    variant="secondary"
-                    icon="arrow_downward"
-                    label={t('chat.jumpToLatest')}
-                    style={{backgroundColor: colors.surface}}
-                    onPress={() => {
-                      if (hasNewer && conversationId) {
-                        void loadLatest(conversationId);
-                      }
-                      listRef.current?.scrollToOffset({offset: 0, animated: true});
-                    }}
-                  />
-                </View>
+                <Pressable
+                  testID="jump-to-latest"
+                  accessibilityRole="button"
+                  accessibilityLabel={t('chat.jumpToLatest')}
+                  hitSlop={6}
+                  onPress={() => {
+                    if (hasNewer && conversationId) {
+                      void loadLatest(conversationId);
+                    }
+                    listRef.current?.scrollToOffset({offset: 0, animated: true});
+                  }}
+                  style={({pressed}) => ({
+                    position: 'absolute',
+                    bottom: spacing.sm,
+                    alignSelf: 'center',
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: colors.surface,
+                    borderWidth: 1,
+                    borderColor: colors.surfaceAlt,
+                    shadowColor: '#1C1410',
+                    shadowOpacity: 0.16,
+                    shadowRadius: 10,
+                    shadowOffset: {width: 0, height: 4},
+                    elevation: 4,
+                    opacity: pressed ? 0.7 : 1,
+                  })}>
+                  <NamuIcon name="arrow_downward" size={20} color={colors.textPrimary} />
+                </Pressable>
               ) : null}
             </View>
           )}
 
-          {activeHere && session.active?.phase === 'preparing' ? (
-            <StatusNotice tone="info" quiet message={t('chat.preparing')} />
+          {showEmpty ? (
+            // Suggestions insert an editable localized prompt; they never send (S04).
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              style={{flexGrow: 0, marginHorizontal: -sizes.phonePadding}}
+              contentContainerStyle={{gap: spacing.sm, paddingHorizontal: sizes.phonePadding, paddingTop: spacing.sm}}>
+              {SUGGESTIONS.map(item => (
+                <Pressable
+                  key={item.label}
+                  testID={item.testID}
+                  accessibilityRole="button"
+                  accessibilityLabel={t(item.label)}
+                  onPress={() => composerRef.current?.insert(t(item.prompt))}
+                  style={({pressed}) => ({
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                    minHeight: sizes.touchTarget,
+                    paddingHorizontal: spacing.lg,
+                    borderRadius: radii.pill,
+                    borderWidth: 1,
+                    borderColor: colors.surfaceAlt,
+                    backgroundColor: colors.surface,
+                    opacity: pressed ? 0.7 : 1,
+                  })}>
+                  <NamuIcon name={item.icon} size={18} color={colors.link} />
+                  <NamuText variant="label" weight="medium">
+                    {t(item.label)}
+                  </NamuText>
+                </Pressable>
+              ))}
+            </ScrollView>
           ) : null}
+
           {notice ? (
             <StatusNotice
               tone="error"
@@ -518,15 +633,39 @@ export function ChatScreen(): React.JSX.Element {
             </NamuText>
           </View>
         }
-        start={
-          <NamuIconButton
-            icon="language"
-            testID="chat-language"
-            label={`${t('responseLanguage.label')}: ${t(`responseLanguage.${language}`)}`}
-            onPress={() => setLanguageMenu(true)}
-          />
+        start={<NamuIconButton icon="menu" label={t('chat.openMenu')} onPress={() => openDrawer(true)} testID="chat-menu" />}
+        end={
+          <>
+            <NamuIconButton
+              icon="translate"
+              testID="chat-language"
+              label={`${t('responseLanguage.label')}: ${t(`responseLanguage.${language}`)}`}
+              onPress={() => setLanguageMenu(true)}
+            />
+            <NamuIconButton icon="edit_square" label={t('chat.newChat')} onPress={() => open(null)} testID="chat-new" />
+          </>
         }
-        end={<NamuIconButton icon="edit_square" label={t('chat.newChat')} onPress={() => open(null)} testID="chat-new" />}
+      />
+
+      <ActionSheet
+        visible={messageMenu !== null}
+        title={t('chat.messageOptions')}
+        cancelLabel={t('common.cancel')}
+        onDismiss={() => setMessageMenu(null)}
+        items={[
+          {
+            key: 'copy',
+            label: t('chat.copyMessage'),
+            icon: 'content_copy' as const,
+            testID: 'message-copy',
+            onPress: () => {
+              if (messageMenu !== null) {
+                copy(messageMenu);
+              }
+              setMessageMenu(null);
+            },
+          },
+        ]}
       />
 
       {/* Response-language menu: no model terminology (S06). */}

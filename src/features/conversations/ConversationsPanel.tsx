@@ -1,8 +1,7 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {FlatList, Pressable, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, Pressable, SectionList, View} from 'react-native';
 import {useTranslation} from 'react-i18next';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useServices} from '../../app/ServicesContext';
 import {useAppStore, useChatViewStore} from '../../app/stores';
 import {CONVERSATION_PAGE_SIZE} from '../../data/repositories/ConversationRepository';
@@ -11,7 +10,6 @@ import type {ConversationListItem, SearchHit} from '../../data/types';
 import {validateRename} from '../../domain/chat/title';
 import {ActionSheet, type ActionSheetItem} from '../../design/components/ActionSheet';
 import {EmptyState} from '../../design/components/EmptyState';
-import {GlassHeader} from '../../design/components/GlassHeader';
 import {NamuDialog} from '../../design/components/NamuDialog';
 import {NamuIconButton} from '../../design/components/NamuIconButton';
 import {NamuText} from '../../design/components/NamuText';
@@ -19,9 +17,8 @@ import {NamuTextField} from '../../design/components/NamuTextField';
 import {StatusNotice} from '../../design/components/StatusNotice';
 import {NamuIcon} from '../../design/icons/NamuIcon';
 import {markdownToPlainText} from '../../design/markdown/parseMarkdown';
-import {useTabBarSpace, useTopBarSpace} from '../../design/layout';
 import {useNamuTheme} from '../../design/theme';
-import {sizes, spacing} from '../../design/tokens';
+import {radii, sizes, spacing} from '../../design/tokens';
 import {useDebounced, useFormatters} from '../shared/hooks';
 import {ReturnToAnswerBanner} from '../shared/ReturnToAnswerBanner';
 import {useExport} from '../shared/useExport';
@@ -29,11 +26,38 @@ import {useExport} from '../shared/useExport';
 /** DB-005 */
 const SEARCH_DEBOUNCE_MS = 250;
 
-/** S05 — Conversations: newest first, local search, rename/export/delete. */
-export function ConversationsScreen(): React.JSX.Element {
+type GroupKey = 'groupToday' | 'groupYesterday' | 'groupWeek' | 'groupOlder';
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function groupOf(updatedAt: number, now: number): GroupKey {
+  const startOfToday = new Date(now).setHours(0, 0, 0, 0);
+  if (updatedAt >= startOfToday) {
+    return 'groupToday';
+  }
+  if (updatedAt >= startOfToday - DAY_MS) {
+    return 'groupYesterday';
+  }
+  return updatedAt >= startOfToday - 7 * DAY_MS ? 'groupWeek' : 'groupOlder';
+}
+
+/**
+ * S05 — Conversations, presented as the side drawer's content (PA-007): local
+ * search, New chat, history newest first grouped by day, rename/export/delete,
+ * and the way into Settings.
+ */
+export function ConversationsPanel({
+  visible,
+  onClose,
+  onOpenSettings,
+}: {
+  /** True while the drawer is open; the list refreshes when it opens. */
+  visible: boolean;
+  onClose: () => void;
+  onOpenSettings: () => void;
+}): React.JSX.Element {
   const {t} = useTranslation();
   const {colors} = useNamuTheme();
-  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const services = useServices();
   const format = useFormatters();
   const exporter = useExport();
@@ -55,8 +79,6 @@ export function ConversationsScreen(): React.JSX.Element {
   const [working, setWorking] = useState(false);
   const [deleteNotice, setDeleteNotice] = useState<string | null>(null);
   const loading = useRef(false);
-  const topSpace = useTopBarSpace();
-  const tabSpace = useTabBarSpace();
 
   const reload = useCallback(async () => {
     if (!services.conversations) {
@@ -75,7 +97,11 @@ export function ConversationsScreen(): React.JSX.Element {
     void reload();
   }, [reload, version]);
 
-  useEffect(() => navigation.addListener('focus', () => void reload()), [navigation, reload]);
+  useEffect(() => {
+    if (visible) {
+      void reload();
+    }
+  }, [visible, reload]);
 
   const loadMore = async () => {
     const last = items[items.length - 1];
@@ -116,10 +142,22 @@ export function ConversationsScreen(): React.JSX.Element {
     };
   }, [debouncedQuery, services, version]);
 
-  const open = (conversationId: string, ordinal: number | null = null) => {
+  const open = (conversationId: string | null, ordinal: number | null = null) => {
     openChat(conversationId, ordinal);
-    navigation.navigate('Tabs', {screen: 'Chat'});
+    onClose();
   };
+
+  // Newest first inside day groups, like the list itself (DB-004 order is kept).
+  const sections = useMemo(() => {
+    const now = Date.now();
+    const order: GroupKey[] = ['groupToday', 'groupYesterday', 'groupWeek', 'groupOlder'];
+    const byGroup = new Map<GroupKey, ConversationListItem[]>();
+    for (const item of items) {
+      const key = groupOf(item.updatedAt, now);
+      byGroup.set(key, [...(byGroup.get(key) ?? []), item]);
+    }
+    return order.filter(key => byGroup.has(key)).map(key => ({key, title: t(`conversations.${key}`), data: byGroup.get(key)!}));
+  }, [items, t]);
 
   const submitRename = async () => {
     if (!renaming || !services.conversations) {
@@ -170,34 +208,44 @@ export function ConversationsScreen(): React.JSX.Element {
     }
   };
 
-  const renderItem = ({item}: {item: ConversationListItem}) => (
-    <View style={{flexDirection: 'row', alignItems: 'center'}}>
-      <Pressable
-        testID={`conversation-${item.id}`}
-        onPress={() => open(item.id)}
-        accessibilityRole="button"
-        accessibilityLabel={`${item.title}. ${format.dateTime(item.updatedAt)}. ${markdownToPlainText(item.preview, 80)}`}
-        style={({pressed}) => ({flex: 1, paddingVertical: spacing.md, gap: 2, opacity: pressed ? 0.6 : 1, minHeight: sizes.touchTarget})}>
-        <View style={{flexDirection: 'row', gap: spacing.sm, alignItems: 'baseline'}}>
-          <NamuText weight="semibold" numberOfLines={1} style={{flex: 1}}>
+  const renderItem = ({item}: {item: ConversationListItem}) => {
+    const current = item.id === currentChatId;
+    return (
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          borderRadius: radii.control,
+          backgroundColor: current ? colors.surfaceAlt : 'transparent',
+        }}>
+        <Pressable
+          testID={`conversation-${item.id}`}
+          onPress={() => open(item.id)}
+          onLongPress={() => setMenuFor(item)}
+          accessibilityRole="button"
+          accessibilityState={{selected: current}}
+          accessibilityLabel={`${item.title}. ${format.dateTime(item.updatedAt)}. ${markdownToPlainText(item.preview, 80)}`}
+          style={({pressed}) => ({
+            flex: 1,
+            minHeight: sizes.touchTarget,
+            justifyContent: 'center',
+            paddingStart: spacing.md,
+            opacity: pressed ? 0.6 : 1,
+          })}>
+          <NamuText weight={current ? 'semibold' : 'regular'} numberOfLines={1}>
             {item.title}
           </NamuText>
-          <NamuText variant="label" tone="secondary">
-            {format.dateTime(item.updatedAt)}
-          </NamuText>
-        </View>
-        <NamuText variant="label" tone="secondary" numberOfLines={2}>
-          {markdownToPlainText(item.preview)}
-        </NamuText>
-      </Pressable>
-      <NamuIconButton
-        icon="more_vert"
-        label={t('conversations.menu', {title: item.title})}
-        onPress={() => setMenuFor(item)}
-        testID={`conversation-menu-${item.id}`}
-      />
-    </View>
-  );
+        </Pressable>
+        <NamuIconButton
+          icon="more_horiz"
+          tone="secondary"
+          label={t('conversations.menu', {title: item.title})}
+          onPress={() => setMenuFor(item)}
+          testID={`conversation-menu-${item.id}`}
+        />
+      </View>
+    );
+  };
 
   const menuItems: ActionSheetItem[] = menuFor
     ? [
@@ -250,7 +298,7 @@ export function ConversationsScreen(): React.JSX.Element {
     <Pressable
       onPress={() => open(item.conversationId, item.ordinal)}
       accessibilityRole="button"
-      style={({pressed}) => ({paddingVertical: spacing.md, gap: 2, opacity: pressed ? 0.6 : 1, minHeight: sizes.touchTarget})}>
+      style={({pressed}) => ({paddingVertical: spacing.md, paddingHorizontal: spacing.md, gap: 2, opacity: pressed ? 0.6 : 1, minHeight: sizes.touchTarget})}>
       <NamuText weight="semibold" numberOfLines={1}>
         {item.conversationTitle}
       </NamuText>
@@ -260,66 +308,83 @@ export function ConversationsScreen(): React.JSX.Element {
     </Pressable>
   );
 
-  const separator = () => <View style={{height: 1, backgroundColor: colors.surfaceAlt}} />;
-
   return (
-    <SafeAreaView edges={['left', 'right']} style={{flex: 1, backgroundColor: colors.background}} testID="conversations-screen">
-      <View style={{flex: 1, width: '100%', maxWidth: sizes.maxContentWidth, alignSelf: 'center', paddingHorizontal: sizes.phonePadding, gap: spacing.sm}}>
-        <View style={{height: topSpace}} />
-        <ReturnToAnswerBanner />
+    <View
+      testID="conversations-screen"
+      style={{flex: 1, paddingTop: insets.top + spacing.sm, paddingBottom: Math.max(insets.bottom, spacing.sm), paddingStart: Math.max(insets.left, spacing.md), paddingEnd: spacing.sm}}>
+      <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.xs}}>
+        <View style={{flex: 1}}>
+          <NamuTextField
+            testID="conversation-search"
+            label={t('conversations.searchLabel')}
+            showLabel={false}
+            shape="pill"
+            placeholder={t('conversations.searchPlaceholder')}
+            value={query}
+            onChangeText={setQuery}
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+            leading={<NamuIcon name="search" size={20} color={colors.textSecondary} />}
+            trailing={query.length > 0 ? <NamuIconButton icon="close" label={t('common.close')} onPress={() => setQuery('')} /> : undefined}
+          />
+        </View>
+        <NamuIconButton icon="edit_square" label={t('chat.newChat')} onPress={() => open(null)} testID="drawer-new-chat" />
+      </View>
+
+      <View style={{flex: 1, marginTop: spacing.sm, gap: spacing.sm}}>
+        <ReturnToAnswerBanner onNavigate={onClose} />
         {deleteNotice ? <StatusNotice tone="error" message={deleteNotice} testID="conversations-notice" /> : null}
-        <NamuTextField
-          testID="conversation-search"
-          label={t('conversations.searchLabel')}
-          showLabel={false}
-          placeholder={t('conversations.searchPlaceholder')}
-          value={query}
-          onChangeText={setQuery}
-          autoCorrect={false}
-          autoCapitalize="none"
-          returnKeyType="search"
-          leading={<NamuIcon name="search" color={colors.textSecondary} />}
-          trailing={query.length > 0 ? <NamuIconButton icon="close" label={t('common.close')} onPress={() => setQuery('')} /> : undefined}
-        />
         {hits !== null ? (
           <FlatList
             data={hits}
             keyExtractor={(hit, index) => `${hit.conversationId}-${hit.turnId ?? 'title'}-${hit.kind}-${index}`}
             renderItem={renderHit}
-            ItemSeparatorComponent={separator}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{paddingBottom: tabSpace}}
             ListEmptyComponent={<EmptyState icon="search" title={t('conversations.noResults', {query: debouncedQuery.trim()})} />}
           />
         ) : (
-          <FlatList
-            data={items}
+          <SectionList
+            sections={sections}
             keyExtractor={item => item.id}
             renderItem={renderItem}
-            ItemSeparatorComponent={separator}
+            renderSectionHeader={({section}) => (
+              <NamuText
+                variant="label"
+                tone="secondary"
+                accessibilityRole="header"
+                style={{paddingStart: spacing.md, paddingTop: spacing.lg, paddingBottom: spacing.xs, backgroundColor: colors.surface}}>
+                {section.title}
+              </NamuText>
+            )}
+            stickySectionHeadersEnabled={false}
             onEndReached={() => void loadMore()}
             onEndReachedThreshold={0.5}
-            contentContainerStyle={{paddingBottom: tabSpace}}
             keyboardShouldPersistTaps="handled"
             ListEmptyComponent={
-              <EmptyState
-                icon="forum"
-                testID="conversations-empty"
-                title={t('conversations.emptyTitle')}
-                message={t('conversations.emptyBody')}
-                action={{
-                  label: t('chat.newChat'),
-                  icon: 'edit_square',
-                  onPress: () => {
-                    openChat(null);
-                    navigation.navigate('Tabs', {screen: 'Chat'});
-                  },
-                }}
-              />
+              <EmptyState icon="forum" testID="conversations-empty" title={t('conversations.emptyTitle')} message={t('conversations.emptyBody')} />
             }
           />
         )}
       </View>
+
+      <View style={{height: 1, backgroundColor: colors.surfaceAlt, marginEnd: spacing.sm}} />
+      <Pressable
+        testID="drawer-settings"
+        accessibilityRole="button"
+        accessibilityLabel={t('settings.title')}
+        onPress={onOpenSettings}
+        style={({pressed}) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
+          minHeight: sizes.touchTarget + spacing.sm,
+          paddingStart: spacing.md,
+          opacity: pressed ? 0.6 : 1,
+        })}>
+        <NamuIcon name="settings" color={colors.textPrimary} />
+        <NamuText weight="medium">{t('settings.title')}</NamuText>
+      </Pressable>
 
       {/* S05 overflow menu: Rename, Export conversation, Delete. */}
       <ActionSheet
@@ -328,19 +393,6 @@ export function ConversationsScreen(): React.JSX.Element {
         cancelLabel={t('common.cancel')}
         onDismiss={() => setMenuFor(null)}
         items={menuItems}
-      />
-      <GlassHeader
-        title={t('conversations.title')}
-        end={
-          <NamuIconButton
-            icon="edit_square"
-            label={t('chat.newChat')}
-            onPress={() => {
-              openChat(null);
-              navigation.navigate('Tabs', {screen: 'Chat'});
-            }}
-          />
-        }
       />
       <NamuDialog
         visible={renaming !== null}
@@ -383,6 +435,6 @@ export function ConversationsScreen(): React.JSX.Element {
         ]}
       />
       {exporter.dialogs}
-    </SafeAreaView>
+    </View>
   );
 }

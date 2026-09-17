@@ -1,5 +1,5 @@
 import React from 'react';
-import {useNavigation} from '@react-navigation/native';
+import {StackActions, useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useChatSessionStore, useChatViewStore} from '../../app/stores';
 import {StatusNotice} from '../../design/components/StatusNotice';
@@ -11,8 +11,11 @@ import {StatusNotice} from '../../design/components/StatusNotice';
  */
 export function ReturnToAnswerBanner({
   currentConversationId,
+  onNavigate,
 }: {
   currentConversationId?: string | null;
+  /** Called after the chat was switched, e.g. to close the drawer. */
+  onNavigate?: () => void;
 }): React.JSX.Element | null {
   const {t} = useTranslation();
   const navigation = useNavigation();
@@ -34,7 +37,8 @@ export function ReturnToAnswerBanner({
         label: t('chat.returnAction'),
         onPress: () => {
           open(target);
-          navigation.navigate('Tabs', {screen: 'Chat'});
+          onNavigate?.();
+          navigation.dispatch(StackActions.popTo('Home'));
         },
       }}
     />

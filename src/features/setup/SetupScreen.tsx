@@ -79,7 +79,7 @@ function DeviceCheck(): React.JSX.Element {
     void runCheck();
   }, [runCheck]);
 
-  const leave = () => (navigation.canGoBack() ? navigation.goBack() : navigation.dispatch(StackActions.popTo('Tabs')));
+  const leave = () => (navigation.canGoBack() ? navigation.goBack() : navigation.dispatch(StackActions.popTo('Home')));
 
   const start = async (allowMetered: boolean) => {
     setConfirmMetered(false);
@@ -301,7 +301,7 @@ function SetupProgress({transfer, installed}: {transfer: TransferInfo | null; in
       footer={
         <>
           {phase === 'installed' ? (
-            <NamuButton label={t('progress.startChat')} onPress={() => navigation.dispatch(StackActions.popTo('Tabs', {screen: 'Chat'}))} testID="setup-done" />
+            <NamuButton label={t('progress.startChat')} onPress={() => navigation.dispatch(StackActions.popTo('Home', {screen: 'Chat'}))} testID="setup-done" />
           ) : null}
           {transfer && (phase === 'downloading' || (phase === 'waiting' && !transfer.userPaused)) ? (
             <NamuButton label={t('progress.pause')} icon="pause" variant="secondary" disabled={busy} onPress={() => act(() => services.transfer.pause(transfer.transferId))} testID="setup-pause" />
@@ -335,7 +335,7 @@ function SetupProgress({transfer, installed}: {transfer: TransferInfo | null; in
             <NamuButton label={t('progress.cancelSetup')} variant="text" onPress={() => setConfirmCancel(true)} testID="setup-cancel" />
           ) : null}
           {phase !== 'installed' ? (
-            <NamuButton label={t('common.close')} variant="text" onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.dispatch(StackActions.popTo('Tabs')))} />
+            <NamuButton label={t('common.close')} variant="text" onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.dispatch(StackActions.popTo('Home')))} />
           ) : null}
         </>
       }>

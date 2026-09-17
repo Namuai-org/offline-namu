@@ -1,6 +1,7 @@
 # M5 — Complete product UI
 
-**Built:** S01–S10, three bottom tabs, setup/recovery above the tabs, Namu
+**Built:** S01–S10; chat-first navigation with a history drawer instead of the
+three bottom tabs (PA-007, owner-approved), setup/recovery above Home, Namu
 tokens and components (NamuButton, NamuTextField, NamuDialog, StatusNotice,
 DownloadProgress, ChatMessage, EmptyState, StorageRow + rows, ActionSheet,
 Screen), safe Markdown renderer, 333 strings × 3 locales, localized byte/date

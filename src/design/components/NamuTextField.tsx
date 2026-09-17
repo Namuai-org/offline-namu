@@ -12,11 +12,13 @@ export interface NamuTextFieldProps extends Omit<TextInputProps, 'style'> {
   helper?: string | null;
   leading?: React.ReactNode;
   trailing?: React.ReactNode;
+  /** Filled pill without an outline at rest — search fields. Focus still draws the ring (DS-005). */
+  shape?: 'box' | 'pill';
 }
 
 /** DS-005: focused, disabled and error states; the error is text, not only colour. */
 export const NamuTextField = React.forwardRef<TextInput, NamuTextFieldProps>(function NamuTextField(
-  {label, showLabel = true, error, helper, leading, trailing, editable = true, onFocus, onBlur, ...rest},
+  {label, showLabel = true, error, helper, leading, trailing, shape = 'box', editable = true, onFocus, onBlur, ...rest},
   ref,
 ) {
   const {colors} = useNamuTheme();
@@ -33,6 +35,14 @@ export const NamuTextField = React.forwardRef<TextInput, NamuTextFieldProps>(fun
         style={[
           styles.box,
           {borderColor, borderWidth: focused || error ? 2 : 1, backgroundColor: colors.surface, opacity: editable ? 1 : 0.5},
+          shape === 'pill'
+            ? {
+                borderRadius: radii.pill,
+                backgroundColor: colors.background,
+                borderColor: focused || error ? borderColor : colors.surfaceAlt,
+                paddingHorizontal: spacing.lg,
+              }
+            : null,
         ]}>
         {leading}
         <TextInput

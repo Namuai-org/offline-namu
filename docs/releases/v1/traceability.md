@@ -113,7 +113,7 @@ Abbreviations: `core/` = `android/namu-core/src/main/kotlin/org/namuai/offline/c
 | S01 | `features/setup/OnboardingScreen.tsx` | JS `ui/journey` |
 | S02, S03 | `features/setup/SetupScreen.tsx` | JS `ui/journey` (T01) |
 | S04 | `features/chat/*`, `design/components/ChatMessage.tsx`, `design/markdown/*` | JS `ui/chatJourney`, `design/parseMarkdown` (T20) |
-| S05 | `features/conversations/ConversationsScreen.tsx` | JS `ui/chatJourney` |
+| S05 | `features/conversations/ConversationsPanel.tsx` (drawer content, PA-007) | JS `ui/chatJourney` |
 | S06–S09 | `features/settings/*` | JS `ui/chatJourney` |
 | S10 | `features/about/*`, vendored notices | JS; legal review **open** |
 | UX-001 | `app/Navigation.tsx`, `lastConversationId` | JS |

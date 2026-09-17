@@ -66,3 +66,14 @@ export const useChatViewStore = create<ChatViewState>(set => ({
   open: (conversationId, targetOrdinal = null) =>
     set(state => ({conversationId, targetOrdinal, nonce: state.nonce + 1})),
 }));
+
+/** Side drawer (history, search, settings) over the chat — PA-007. */
+interface DrawerState {
+  open: boolean;
+  setOpen(open: boolean): void;
+}
+
+export const useDrawerStore = create<DrawerState>(set => ({
+  open: false,
+  setOpen: open => set({open}),
+}));

@@ -26,7 +26,7 @@ export function Screen({
   footer?: React.ReactNode;
   /** Space reserved under a floating/transparent glass header. */
   topInset?: number;
-  /** Space reserved above the floating glass tab bar. */
+  /** Extra space reserved at the bottom of the content. */
   bottomInset?: number;
   testID?: string;
 }): React.JSX.Element {

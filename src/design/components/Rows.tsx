@@ -168,3 +168,117 @@ export function SectionHeader({title}: {title: string}): React.JSX.Element {
     </NamuText>
   );
 }
+
+/**
+ * A titled card of settings rows separated by inset hairlines. An optional
+ * footnote under the card explains the group in one sentence.
+ */
+export function SettingsGroup({
+  title,
+  footer,
+  children,
+}: {
+  title?: string;
+  footer?: string;
+  children: React.ReactNode;
+}): React.JSX.Element {
+  const {colors} = useNamuTheme();
+  const rows = React.Children.toArray(children).filter(Boolean);
+  return (
+    <View style={{gap: spacing.sm}}>
+      {title ? (
+        <NamuText
+          variant="label"
+          weight="semibold"
+          tone="secondary"
+          accessibilityRole="header"
+          style={{paddingHorizontal: spacing.md, textTransform: 'uppercase', letterSpacing: 0.6, fontSize: 12}}>
+          {title}
+        </NamuText>
+      ) : null}
+      <View
+        style={{
+          borderRadius: radii.surface,
+          borderWidth: 1,
+          borderColor: colors.surfaceAlt,
+          backgroundColor: colors.surface,
+          overflow: 'hidden',
+        }}>
+        {rows.map((row, index) => (
+          <React.Fragment key={index}>
+            {index > 0 ? <View style={{height: 1, backgroundColor: colors.surfaceAlt, marginStart: spacing.lg + sizes.icon + spacing.md}} /> : null}
+            {row}
+          </React.Fragment>
+        ))}
+      </View>
+      {footer ? (
+        <NamuText variant="label" tone="secondary" style={{paddingHorizontal: spacing.md}}>
+          {footer}
+        </NamuText>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * One line of a settings card: icon, title, the current value at the end, and
+ * a mark that says what a tap does — a chevron opens a page, a caret opens a
+ * choice list. Without `onPress` it is a plain read-only fact (e.g. version).
+ */
+export function SettingsRow({
+  icon,
+  title,
+  value,
+  kind = 'navigate',
+  destructive = false,
+  onPress,
+  testID,
+}: {
+  icon: IconName;
+  title: string;
+  value?: string;
+  kind?: 'navigate' | 'choose';
+  destructive?: boolean;
+  onPress?: () => void;
+  testID?: string;
+}): React.JSX.Element {
+  const {colors} = useNamuTheme();
+  const [focused, setFocused] = useState(false);
+  const tint = destructive ? colors.error : colors.textPrimary;
+  return (
+    <Pressable
+      testID={testID}
+      onPress={onPress}
+      disabled={!onPress}
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityLabel={value ? `${title}: ${value}` : title}
+      style={({pressed}) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        minHeight: sizes.touchTarget + spacing.sm,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
+        backgroundColor: pressed ? colors.surfaceAlt : 'transparent',
+        borderWidth: focused ? 2 : 0,
+        borderColor: colors.focus,
+      })}>
+      <NamuIcon name={icon} color={destructive ? colors.error : colors.textSecondary} />
+      <NamuText weight="medium" style={{color: tint, flexShrink: 1}}>
+        {title}
+      </NamuText>
+      <View style={{flex: 1, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: spacing.xs, minWidth: 48}}>
+        {value ? (
+          <NamuText tone="secondary" numberOfLines={1} style={{flexShrink: 1, textAlign: 'right'}}>
+            {value}
+          </NamuText>
+        ) : null}
+        {onPress ? (
+          <NamuIcon name={kind === 'choose' ? 'expand_more' : 'chevron_right'} size={20} color={colors.textSecondary} />
+        ) : null}
+      </View>
+    </Pressable>
+  );
+}

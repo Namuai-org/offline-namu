@@ -13,10 +13,12 @@ export const NamuIconButton = React.forwardRef<
     onPress: () => void;
     disabled?: boolean;
     tone?: 'primary' | 'action' | 'error' | 'secondary';
+    /** 36 px visual with a 20 px glyph; hit slop keeps the 48 px touch target (DS-002). */
+    compact?: boolean;
     testID?: string;
     style?: StyleProp<ViewStyle>;
   }
->(function NamuIconButton({icon, label, onPress, disabled = false, tone = 'primary', testID, style}, ref) {
+>(function NamuIconButton({icon, label, onPress, disabled = false, tone = 'primary', compact = false, testID, style}, ref) {
   const {colors} = useNamuTheme();
   const [focused, setFocused] = useState(false);
   const color =
@@ -24,13 +26,14 @@ export const NamuIconButton = React.forwardRef<
     : tone === 'error' ? colors.error
     : tone === 'secondary' ? colors.textSecondary
     : colors.textPrimary;
+  const box = compact ? 36 : sizes.touchTarget;
   return (
     <Pressable
       ref={ref}
       testID={testID}
       onPress={onPress}
       disabled={disabled}
-      hitSlop={4}
+      hitSlop={compact ? (sizes.touchTarget - box) / 2 : 4}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       accessibilityRole="button"
@@ -38,9 +41,9 @@ export const NamuIconButton = React.forwardRef<
       accessibilityState={{disabled}}
       style={({pressed}) => [
         {
-          width: sizes.touchTarget,
-          height: sizes.touchTarget,
-          borderRadius: sizes.touchTarget / 2,
+          width: box,
+          height: box,
+          borderRadius: box / 2,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: disabled ? 0.4 : pressed ? 0.6 : 1,
@@ -49,7 +52,7 @@ export const NamuIconButton = React.forwardRef<
         },
         style,
       ]}>
-      <NamuIcon name={icon} color={color} />
+      <NamuIcon name={icon} color={color} size={compact ? 20 : undefined} />
     </Pressable>
   );
 });

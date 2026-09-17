@@ -11,12 +11,15 @@ export function ActiveAnswer({
   attemptId,
   initialText,
   statusLabel,
+  thinkingLabel,
   actions,
   onLinkPress,
 }: {
   attemptId: string;
   initialText: string;
-  statusLabel: string;
+  /** Only for states the text itself does not show, e.g. "Stopping…". */
+  statusLabel?: string;
+  thinkingLabel: string;
   actions: AssistantAction[];
   onLinkPress: (href: string, hostname: string) => void;
 }): React.JSX.Element {
@@ -37,6 +40,7 @@ export function ActiveAnswer({
       text={text}
       streaming
       statusLabel={statusLabel}
+      thinkingLabel={thinkingLabel}
       actions={actions}
       onLinkPress={onLinkPress}
     />

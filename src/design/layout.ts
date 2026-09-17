@@ -1,22 +1,12 @@
 import {useEffect, useState} from 'react';
 import {Keyboard, Platform} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import {spacing} from './tokens';
 
-/** Glass frame geometry shared by the floating bars and the screens under them. */
+/** Glass frame geometry shared by the floating top bar and the screens under it. */
 export const TOP_BAR_HEIGHT = 56;
-export const TAB_BAR_HEIGHT = 64;
-export const TAB_BAR_MARGIN = spacing.md;
-
 /** Height of the floating glass top bar including the status-bar inset. */
 export function useTopBarSpace(): number {
   return useSafeAreaInsets().top + TOP_BAR_HEIGHT;
-}
-
-/** Space the floating glass tab bar occupies at the bottom of tab screens. */
-export function useTabBarSpace(): number {
-  const {bottom} = useSafeAreaInsets();
-  return TAB_BAR_HEIGHT + TAB_BAR_MARGIN + Math.max(bottom, TAB_BAR_MARGIN);
 }
 
 export function useKeyboardVisible(): boolean {

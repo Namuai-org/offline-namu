@@ -18,6 +18,7 @@ import {codePointLength} from '../../../domain/text/graphemes';
  */
 export interface FakeEngineScript {
   loadDelayMs: number;
+  resetDelayMs: number;
   failLoadWith: InferenceFailure | null;
   /** Tokens streamed for the next generation. */
   tokens: string[];
@@ -44,6 +45,7 @@ export function approximateTokens(messages: ChatMessage[]): number {
 export class FakeInferenceEngine implements NamuEngine {
   script: FakeEngineScript = {
     loadDelayMs: 0,
+    resetDelayMs: 0,
     failLoadWith: null,
     tokens: DEFAULT_TOKENS,
     tokenDelayMs: 0,
@@ -95,6 +97,7 @@ export class FakeInferenceEngine implements NamuEngine {
   async resetSession(): Promise<void> {
     this.resetCount++;
     this.events.push('reset');
+    await delay(this.script.resetDelayMs);
   }
 
   async generate(request: GenerateRequest, onText: (event: TextEvent) => void): Promise<GenerateResult> {
@@ -142,6 +145,8 @@ export class FakeInferenceEngine implements NamuEngine {
   cancel(requestId: string): Promise<void> {
     this.events.push(`cancel:${requestId}`);
     if (this.engineState !== 'generating') {
+      // Nothing is running under this ID: acknowledged immediately. The
+      // controller never starts a generation once a stop was requested.
       return Promise.resolve();
     }
     this.engineState = 'stopping';

@@ -103,4 +103,42 @@ describe('DB-006 migrations', () => {
     expect(result).toMatchObject({mode: 'recovery', reason: 'checksum-mismatch'});
     await result.db?.close();
   });
+
+  it('never deletes or replaces namu.sqlite when validation fails; recovery reads the consistent backup', async () => {
+    const dir = makeTempDir();
+    const factory = new NodeSqliteFactory();
+    const v1 = await openChatDatabase({factory, directory: dir, now});
+    await v1.db!.write(tx =>
+      tx.execute("INSERT INTO conversations (id, title, created_at, updated_at) VALUES ('c1', 'Keep me', 1, 1)"),
+    );
+    await v1.db!.close();
+    const before = fs.statSync(path.join(dir, CHAT_DB_NAME)).ino;
+
+    factory.faults.failOn = 'PRAGMA quick_check'; // validation cannot complete
+    const migrations = [...MIGRATIONS, migration2(['ALTER TABLE drafts ADD COLUMN note TEXT'])];
+    const result = await openChatDatabase({factory, directory: dir, now, migrations});
+    factory.faults.failOn = undefined;
+
+    expect(result).toMatchObject({mode: 'recovery', reason: 'validation-failed'});
+    expect(result.db!.readOnly).toBe(true);
+    expect((await result.db!.read('SELECT title FROM conversations')).rows).toEqual([{title: 'Keep me'}]);
+    await result.db!.close();
+    // Both files are still on disk and the main database is the same file.
+    expect(fs.existsSync(path.join(dir, MIGRATION_BACKUP_NAME))).toBe(true);
+    expect(fs.statSync(path.join(dir, CHAT_DB_NAME)).ino).toBe(before);
+
+    // A later start re-validates before trusting the migrated file, then cleans up.
+    const retry = await openChatDatabase({factory, directory: dir, now, migrations});
+    expect(retry.mode).toBe('normal');
+    await retry.db!.close();
+    const clean = await openChatDatabase({factory, directory: dir, now, migrations});
+    expect(clean.mode).toBe('normal');
+    expect(fs.existsSync(path.join(dir, MIGRATION_BACKUP_NAME))).toBe(false);
+    await clean.db!.close();
+  });
+
+  it('exposes no API that could remove or replace the chat database', () => {
+    const factory = new NodeSqliteFactory() as unknown as Record<string, unknown>;
+    expect(factory.replace).toBeUndefined();
+  });
 });

@@ -29,11 +29,12 @@ export function OnboardingScreen(): React.JSX.Element {
   const [step, setStep] = useState<'language' | 'intro'>('language');
 
   const chooseLanguage = (language: AppLanguage) => {
-    void services.setPreference('appLanguage', language);
+    void services.setPreference('appLanguage', language).catch(() => undefined);
   };
 
   const finish = async () => {
-    await services.setPreference('onboardingComplete', true);
+    // A failed preference write must not strand the user on S01.
+    await services.setPreference('onboardingComplete', true).catch(() => undefined);
     navigation.reset({index: 1, routes: [{name: 'Tabs'}, {name: 'Setup'}]});
   };
 

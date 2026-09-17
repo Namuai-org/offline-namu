@@ -1,3 +1,4 @@
+import {Platform} from 'react-native';
 import type {ExportLabels, ExportService} from '../../domain/model/services';
 import NativeNamuExport from './specs/NativeNamuExport';
 
@@ -20,6 +21,11 @@ export class NativeExportService implements ExportService {
   }
   deleteExport(exportId: string): Promise<void> {
     return NativeNamuExport.deleteExport(exportId);
+  }
+  async cleanupAfterShare(exportId: string, handedOver: boolean): Promise<void> {
+    if (!handedOver || Platform.OS === 'ios') {
+      await NativeNamuExport.deleteExport(exportId);
+    }
   }
   sweep(): Promise<number> {
     return NativeNamuExport.sweepExports();

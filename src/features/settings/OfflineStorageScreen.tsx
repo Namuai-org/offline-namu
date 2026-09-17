@@ -4,7 +4,7 @@ import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useServices} from '../../app/ServicesContext';
 import {useChatSessionStore, useTransferStore} from '../../app/stores';
-import type {ProductErrorCode} from '../../domain/inference/failures';
+import {isProductErrorCode, type ProductErrorCode} from '../../domain/inference/failures';
 import {DownloadProgress} from '../../design/components/DownloadProgress';
 import {NamuButton} from '../../design/components/NamuButton';
 import {NamuDialog} from '../../design/components/NamuDialog';
@@ -51,8 +51,16 @@ export function OfflineStorageScreen(): React.JSX.Element {
     try {
       await fn();
     } catch (error) {
+      // Stable product codes get their own copy; anything else gets a neutral
+      // message, never a transfer error for a non-transfer action (section 17).
       const code = (error as {code?: string} | null)?.code;
-      setMessage({tone: 'error', text: code === 'ENGINE_BUSY' ? t('storage.busy') : errorCopy('TRANSFER_RETRY').body, code});
+      if (code === 'ENGINE_BUSY') {
+        setMessage({tone: 'error', text: t('storage.busy')});
+      } else if (isProductErrorCode(code)) {
+        setMessage({tone: 'error', text: errorCopy(code).body, code});
+      } else {
+        setMessage({tone: 'error', text: t('storage.actionFailed')});
+      }
     } finally {
       await services.install.refresh().catch(() => undefined);
       if (isMounted()) {
@@ -194,7 +202,15 @@ export function OfflineStorageScreen(): React.JSX.Element {
           title={errorCopy(updateTransfer.errorCode).title}
           message={errorCopy(updateTransfer.errorCode, {bytes: format.bytes(snapshot.storage.requiredAdditionalBytes)}).body}
           code={updateTransfer.errorCode}
-          action={{label: t('common.close'), onPress: () => void run('dismiss', () => services.transfer.cancel(updateTransfer.transferId))}}
+          action={
+            updateTransfer.errorCode === 'TRANSFER_RETRY' || updateTransfer.errorCode === 'SPACE_LOW'
+              ? {
+                  // Keeps the valid partial download (TRANSFER_RETRY contract).
+                  label: t('common.retry'),
+                  onPress: () => void run('retry', () => services.transfer.resume(updateTransfer.transferId, updateTransfer.meteredConsent)),
+                }
+              : {label: t('common.close'), onPress: () => void run('dismiss', () => services.transfer.cancel(updateTransfer.transferId))}
+          }
         />
       ) : null}
 

@@ -1,0 +1,903 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 54;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		06524C129BBC80515F60C624 /* NamuTransferModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = 98C07839D5FC07DAD671945E /* NamuTransferModule.mm */; };
+		08B8657A1BFB364FC7D0664A /* TransferJournalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7927A0BBC4E054958DAC06F /* TransferJournalTests.swift */; };
+		0B6B9FBEC7805AC6350443EA /* TransferJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF846C6B9BD643F9DC463A6B /* TransferJournal.swift */; };
+		0C678008B78F86A3B35FEA1B /* DMSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 920D1458DE75F4A943F40FFB /* DMSans-Medium.ttf */; };
+		0C80B921A6F3F58F76C31292 /* libPods-Namu.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-Namu.a */; };
+		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		2626B268FA4A4FC61FBD47BB /* DMSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4B7AE0F6D50E79F6D457810D /* DMSans-Regular.ttf */; };
+		32F2739615B9B5B73B458B85 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		3A12ACBEA675C657480C9871 /* NamuConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37ACF3DDDDC2D906F64C2D7 /* NamuConfig.swift */; };
+		4068D289C7C9298CA55368F1 /* DMSans-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 4B0AEB93ACD3F297FF35031A /* DMSans-SemiBold.ttf */; };
+		5384703F887DC635AF14D9C8 /* StrictJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998724EFDD74B75FB359E6A0 /* StrictJSON.swift */; };
+		5654ABC44317557930CE02B0 /* Sha256Streamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9A8C46B7007E9F1E73A19F2 /* Sha256Streamer.swift */; };
+		582AED47661BAE331FF3652D /* descriptor-vectors.json in Resources */ = {isa = PBXBuildFile; fileRef = B62CEB18C3B053BF55CC507D /* descriptor-vectors.json */; };
+		5EB8403ABC307E778AE892A2 /* PrivacyCover.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2BAFC8A00B1BF6765CCE6BE /* PrivacyCover.swift */; };
+		69283D496650ED1A23ACFD81 /* PlatformService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16C9C8587FCCF6584342EB2 /* PlatformService.swift */; };
+		6FE33708528D812E2C615F91 /* TransferService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AAAE69CB91BF0AC88862556 /* TransferService.swift */; };
+		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
+		7A8E418847F1429B59C34C71 /* ActivePointerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6932E8C159A4D9BA96A26DAA /* ActivePointerTests.swift */; };
+		7DD1ACE9EBCD8375D8419E11 /* NamuError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06FBF77F6AC9F522C1E025A3 /* NamuError.swift */; };
+		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		84122CC560920E10584B1BE1 /* GGUFCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9819674BB1D7C25BF010F0A /* GGUFCheck.swift */; };
+		8F99FBEFE712706D27D35497 /* Sha256StreamerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54F88D9D37FC9C7882C6FBD0 /* Sha256StreamerTests.swift */; };
+		9CCD7B1D53B6F6A939636FF1 /* ExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62D7DE40467A95846CB6442F /* ExportService.swift */; };
+		9DDDC6CC80956238CE5C62FA /* GGUFCheckTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA3288E4C4D2AF0E3B3CDB12 /* GGUFCheckTests.swift */; };
+		A43E83AD18A9EA4F52046A6A /* libPods-NamuTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BFF449FE0F7C42D05DCCB22E /* libPods-NamuTests.a */; };
+		AB3DA47B8A29FC2220F11BC7 /* ActivePointer.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD647C08128FD7A186698BCE /* ActivePointer.swift */; };
+		BF97EFA9CB579D5E7CE699CB /* ModelStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A70CB392F9DFA20C3ACA4F0A /* ModelStoreTests.swift */; };
+		C0D9C1CEB641D0D74588BF22 /* DescriptorVerifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = FECA81B8608485EDA0DF0360 /* DescriptorVerifier.swift */; };
+		CB3CF6C119D99018C4E17260 /* NamuExportModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = 76BAD15A35052BDB680302F8 /* NamuExportModule.mm */; };
+		CD3E5D3CFD0226E77D2923CF /* PlatformServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7224C1B62D159522F981CB2 /* PlatformServiceTests.swift */; };
+		D5EC20E9E3B256DF06FC9BF1 /* MaterialSymbolsRounded-Subset.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EB8221017322D8CBFDE56CFF /* MaterialSymbolsRounded-Subset.ttf */; };
+		D9F0B9E906ACDE634A7D7325 /* DescriptorVerifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369C51BCA4E246BC5C689CC6 /* DescriptorVerifierTests.swift */; };
+		DA1425D13627B9C1A62A106A /* NamuBridges.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1CED245E958B09633A72CC2 /* NamuBridges.swift */; };
+		DCF7E50FF93D737D1415886B /* NamuPlatformModule.mm in Sources */ = {isa = PBXBuildFile; fileRef = 744FE4EF9C29053C1C5FAADD /* NamuPlatformModule.mm */; };
+		DE3AE624C4CB50B0D568795F /* ExportServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCFDBE2CCE6BEDA03753EDF /* ExportServiceTests.swift */; };
+		DEB2279F166C6E0E754DAD8A /* TransferServiceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7CC75B4E8262B08216D642 /* TransferServiceIntegrationTests.swift */; };
+		EC72E587D9675C1A6A136BA3 /* LocalHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E972D51524EC60734953FC /* LocalHTTPServer.swift */; };
+		F65DE0E28AD8554C9358F7E2 /* StrictJSONTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3163347D63A9DD1A1DED84F7 /* StrictJSONTests.swift */; };
+		F6A485F66CEE6D6F2A0483FD /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F5CFCAA9DA0B79BD2D0CDB /* TestSupport.swift */; };
+		FA7494B99E5B447D28E97951 /* ModelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1899C69C26E4FC369C8D71A /* ModelStore.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		75AA65F328DDD77D346BC78C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 13B07F861A680F5B00A75B9A;
+			remoteInfo = Namu;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		035A83E4310B972D3A3E5DBC /* NamuSwiftBridge.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = NamuSwiftBridge.h; sourceTree = "<group>"; };
+		06FBF77F6AC9F522C1E025A3 /* NamuError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NamuError.swift; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Namu.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Namu.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Namu/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Namu/Info.plist; sourceTree = "<group>"; };
+		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Namu/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2D04A3AE77E05381FF2DDAD4 /* NamuTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NamuTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		2DB55F49519AF3ED66E2EE94 /* NamuModuleSupport.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = NamuModuleSupport.h; sourceTree = "<group>"; };
+		3163347D63A9DD1A1DED84F7 /* StrictJSONTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StrictJSONTests.swift; sourceTree = "<group>"; };
+		369C51BCA4E246BC5C689CC6 /* DescriptorVerifierTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DescriptorVerifierTests.swift; sourceTree = "<group>"; };
+		3B4392A12AC88292D35C810B /* Pods-Namu.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Namu.debug.xcconfig"; path = "Target Support Files/Pods-Namu/Pods-Namu.debug.xcconfig"; sourceTree = "<group>"; };
+		44BFDC14AADEC0B9F771CC46 /* Pods-NamuTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NamuTests.release.xcconfig"; path = "Target Support Files/Pods-NamuTests/Pods-NamuTests.release.xcconfig"; sourceTree = "<group>"; };
+		4B0AEB93ACD3F297FF35031A /* DMSans-SemiBold.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "DMSans-SemiBold.ttf"; sourceTree = "<group>"; };
+		4B7AE0F6D50E79F6D457810D /* DMSans-Regular.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "DMSans-Regular.ttf"; sourceTree = "<group>"; };
+		54F88D9D37FC9C7882C6FBD0 /* Sha256StreamerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Sha256StreamerTests.swift; sourceTree = "<group>"; };
+		5709B34CF0A7D63546082F79 /* Pods-Namu.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Namu.release.xcconfig"; path = "Target Support Files/Pods-Namu/Pods-Namu.release.xcconfig"; sourceTree = "<group>"; };
+		5AAAE69CB91BF0AC88862556 /* TransferService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TransferService.swift; sourceTree = "<group>"; };
+		5C7CC75B4E8262B08216D642 /* TransferServiceIntegrationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TransferServiceIntegrationTests.swift; sourceTree = "<group>"; };
+		5DCACB8F33CDC322A6C60F78 /* libPods-Namu.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Namu.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		62D7DE40467A95846CB6442F /* ExportService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportService.swift; sourceTree = "<group>"; };
+		6616F8B26B6994E7E482170B /* NamuPlatformModule.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = NamuPlatformModule.h; sourceTree = "<group>"; };
+		6932E8C159A4D9BA96A26DAA /* ActivePointerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ActivePointerTests.swift; sourceTree = "<group>"; };
+		744FE4EF9C29053C1C5FAADD /* NamuPlatformModule.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = NamuPlatformModule.mm; sourceTree = "<group>"; };
+		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Namu/AppDelegate.swift; sourceTree = "<group>"; };
+		76BAD15A35052BDB680302F8 /* NamuExportModule.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = NamuExportModule.mm; sourceTree = "<group>"; };
+		77E972D51524EC60734953FC /* LocalHTTPServer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocalHTTPServer.swift; sourceTree = "<group>"; };
+		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Namu/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		920D1458DE75F4A943F40FFB /* DMSans-Medium.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "DMSans-Medium.ttf"; sourceTree = "<group>"; };
+		98C07839D5FC07DAD671945E /* NamuTransferModule.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = NamuTransferModule.mm; sourceTree = "<group>"; };
+		998724EFDD74B75FB359E6A0 /* StrictJSON.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StrictJSON.swift; sourceTree = "<group>"; };
+		A6E9051ACADDCB2C56D59A71 /* Pods-NamuTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NamuTests.debug.xcconfig"; path = "Target Support Files/Pods-NamuTests/Pods-NamuTests.debug.xcconfig"; sourceTree = "<group>"; };
+		A70CB392F9DFA20C3ACA4F0A /* ModelStoreTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ModelStoreTests.swift; sourceTree = "<group>"; };
+		AD647C08128FD7A186698BCE /* ActivePointer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ActivePointer.swift; sourceTree = "<group>"; };
+		B1899C69C26E4FC369C8D71A /* ModelStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ModelStore.swift; sourceTree = "<group>"; };
+		B521B31B4E3BF698019E654C /* NamuTransferModule.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = NamuTransferModule.h; sourceTree = "<group>"; };
+		B62CEB18C3B053BF55CC507D /* descriptor-vectors.json */ = {isa = PBXFileReference; includeInIndex = 1; path = "descriptor-vectors.json"; sourceTree = "<group>"; };
+		B7927A0BBC4E054958DAC06F /* TransferJournalTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TransferJournalTests.swift; sourceTree = "<group>"; };
+		B9A8C46B7007E9F1E73A19F2 /* Sha256Streamer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Sha256Streamer.swift; sourceTree = "<group>"; };
+		BA3288E4C4D2AF0E3B3CDB12 /* GGUFCheckTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GGUFCheckTests.swift; sourceTree = "<group>"; };
+		BFF449FE0F7C42D05DCCB22E /* libPods-NamuTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NamuTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9819674BB1D7C25BF010F0A /* GGUFCheck.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GGUFCheck.swift; sourceTree = "<group>"; };
+		CCCFDBE2CCE6BEDA03753EDF /* ExportServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportServiceTests.swift; sourceTree = "<group>"; };
+		D16C9C8587FCCF6584342EB2 /* PlatformService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlatformService.swift; sourceTree = "<group>"; };
+		D2BAFC8A00B1BF6765CCE6BE /* PrivacyCover.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrivacyCover.swift; sourceTree = "<group>"; };
+		D37ACF3DDDDC2D906F64C2D7 /* NamuConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NamuConfig.swift; sourceTree = "<group>"; };
+		D67630A890A91E8BF8B1987C /* NamuExportModule.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = NamuExportModule.h; sourceTree = "<group>"; };
+		DF846C6B9BD643F9DC463A6B /* TransferJournal.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TransferJournal.swift; sourceTree = "<group>"; };
+		E1CED245E958B09633A72CC2 /* NamuBridges.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NamuBridges.swift; sourceTree = "<group>"; };
+		EB8221017322D8CBFDE56CFF /* MaterialSymbolsRounded-Subset.ttf */ = {isa = PBXFileReference; includeInIndex = 1; path = "MaterialSymbolsRounded-Subset.ttf"; sourceTree = "<group>"; };
+		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F0F5CFCAA9DA0B79BD2D0CDB /* TestSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
+		F7224C1B62D159522F981CB2 /* PlatformServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlatformServiceTests.swift; sourceTree = "<group>"; };
+		FECA81B8608485EDA0DF0360 /* DescriptorVerifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DescriptorVerifier.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0C80B921A6F3F58F76C31292 /* libPods-Namu.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		64AD865C4AB2793A01494674 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A43E83AD18A9EA4F52046A6A /* libPods-NamuTests.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		13B07FAE1A68108700A75B9A /* Namu */ = {
+			isa = PBXGroup;
+			children = (
+				13B07FB51A68108700A75B9A /* Images.xcassets */,
+				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				13B07FB61A68108700A75B9A /* Info.plist */,
+				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
+				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
+				EE29A4901242D4150D16DB9F /* Native */,
+				2A20820D395FC2C3E2B06DC0 /* Fonts */,
+			);
+			name = Namu;
+			sourceTree = "<group>";
+		};
+		2A20820D395FC2C3E2B06DC0 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				4B7AE0F6D50E79F6D457810D /* DMSans-Regular.ttf */,
+				920D1458DE75F4A943F40FFB /* DMSans-Medium.ttf */,
+				4B0AEB93ACD3F297FF35031A /* DMSans-SemiBold.ttf */,
+				EB8221017322D8CBFDE56CFF /* MaterialSymbolsRounded-Subset.ttf */,
+			);
+			name = Fonts;
+			path = ../src/design/fonts;
+			sourceTree = "<group>";
+		};
+		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
+				5DCACB8F33CDC322A6C60F78 /* libPods-Namu.a */,
+				BFF449FE0F7C42D05DCCB22E /* libPods-NamuTests.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		68ACA5F6113C385FF58F7117 /* Vectors */ = {
+			isa = PBXGroup;
+			children = (
+				B62CEB18C3B053BF55CC507D /* descriptor-vectors.json */,
+			);
+			name = Vectors;
+			path = "../../model-release/test-vectors";
+			sourceTree = "<group>";
+		};
+		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Libraries;
+			sourceTree = "<group>";
+		};
+		83CBB9F61A601CBA00E9B192 = {
+			isa = PBXGroup;
+			children = (
+				13B07FAE1A68108700A75B9A /* Namu */,
+				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				83CBBA001A601CBA00E9B192 /* Products */,
+				2D16E6871FA4F8E400B85C8A /* Frameworks */,
+				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				CD832892169F2FEAF696FA6E /* NamuTests */,
+			);
+			indentWidth = 2;
+			sourceTree = "<group>";
+			tabWidth = 2;
+			usesTabs = 0;
+		};
+		83CBBA001A601CBA00E9B192 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				13B07F961A680F5B00A75B9A /* Namu.app */,
+				2D04A3AE77E05381FF2DDAD4 /* NamuTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				3B4392A12AC88292D35C810B /* Pods-Namu.debug.xcconfig */,
+				5709B34CF0A7D63546082F79 /* Pods-Namu.release.xcconfig */,
+				44BFDC14AADEC0B9F771CC46 /* Pods-NamuTests.release.xcconfig */,
+				A6E9051ACADDCB2C56D59A71 /* Pods-NamuTests.debug.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
+		CD832892169F2FEAF696FA6E /* NamuTests */ = {
+			isa = PBXGroup;
+			children = (
+				68ACA5F6113C385FF58F7117 /* Vectors */,
+				6932E8C159A4D9BA96A26DAA /* ActivePointerTests.swift */,
+				369C51BCA4E246BC5C689CC6 /* DescriptorVerifierTests.swift */,
+				CCCFDBE2CCE6BEDA03753EDF /* ExportServiceTests.swift */,
+				BA3288E4C4D2AF0E3B3CDB12 /* GGUFCheckTests.swift */,
+				A70CB392F9DFA20C3ACA4F0A /* ModelStoreTests.swift */,
+				54F88D9D37FC9C7882C6FBD0 /* Sha256StreamerTests.swift */,
+				3163347D63A9DD1A1DED84F7 /* StrictJSONTests.swift */,
+				F0F5CFCAA9DA0B79BD2D0CDB /* TestSupport.swift */,
+				B7927A0BBC4E054958DAC06F /* TransferJournalTests.swift */,
+				77E972D51524EC60734953FC /* LocalHTTPServer.swift */,
+				5C7CC75B4E8262B08216D642 /* TransferServiceIntegrationTests.swift */,
+				F7224C1B62D159522F981CB2 /* PlatformServiceTests.swift */,
+			);
+			name = NamuTests;
+			path = NamuTests;
+			sourceTree = "<group>";
+		};
+		EE29A4901242D4150D16DB9F /* Native */ = {
+			isa = PBXGroup;
+			children = (
+				AD647C08128FD7A186698BCE /* ActivePointer.swift */,
+				FECA81B8608485EDA0DF0360 /* DescriptorVerifier.swift */,
+				62D7DE40467A95846CB6442F /* ExportService.swift */,
+				C9819674BB1D7C25BF010F0A /* GGUFCheck.swift */,
+				B1899C69C26E4FC369C8D71A /* ModelStore.swift */,
+				E1CED245E958B09633A72CC2 /* NamuBridges.swift */,
+				D37ACF3DDDDC2D906F64C2D7 /* NamuConfig.swift */,
+				06FBF77F6AC9F522C1E025A3 /* NamuError.swift */,
+				D67630A890A91E8BF8B1987C /* NamuExportModule.h */,
+				76BAD15A35052BDB680302F8 /* NamuExportModule.mm */,
+				2DB55F49519AF3ED66E2EE94 /* NamuModuleSupport.h */,
+				6616F8B26B6994E7E482170B /* NamuPlatformModule.h */,
+				744FE4EF9C29053C1C5FAADD /* NamuPlatformModule.mm */,
+				B521B31B4E3BF698019E654C /* NamuTransferModule.h */,
+				98C07839D5FC07DAD671945E /* NamuTransferModule.mm */,
+				D16C9C8587FCCF6584342EB2 /* PlatformService.swift */,
+				D2BAFC8A00B1BF6765CCE6BE /* PrivacyCover.swift */,
+				B9A8C46B7007E9F1E73A19F2 /* Sha256Streamer.swift */,
+				998724EFDD74B75FB359E6A0 /* StrictJSON.swift */,
+				DF846C6B9BD643F9DC463A6B /* TransferJournal.swift */,
+				5AAAE69CB91BF0AC88862556 /* TransferService.swift */,
+				035A83E4310B972D3A3E5DBC /* NamuSwiftBridge.h */,
+			);
+			name = Native;
+			path = Namu/Native;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		00E356ED1AD99517003FC87E /* NamuTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 29FF17B8358E9F430CFBCFE7 /* Build configuration list for PBXNativeTarget "NamuTests" */;
+			buildPhases = (
+				CCB6642194E5E63C0A97E2B9 /* [CP] Check Pods Manifest.lock */,
+				495F947C74447BD74F80FB70 /* Sources */,
+				64AD865C4AB2793A01494674 /* Frameworks */,
+				367592FD08B48EFEB163BAF8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4F4967E6415A57EEA236776D /* PBXTargetDependency */,
+			);
+			name = NamuTests;
+			productName = NamuTests;
+			productReference = 2D04A3AE77E05381FF2DDAD4 /* NamuTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		13B07F861A680F5B00A75B9A /* Namu */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Namu" */;
+			buildPhases = (
+				C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */,
+				13B07F871A680F5B00A75B9A /* Sources */,
+				13B07F8C1A680F5B00A75B9A /* Frameworks */,
+				13B07F8E1A680F5B00A75B9A /* Resources */,
+				9409B62610EDFC360499E66D /* Namu release guards */,
+				3D9C6B88D07BCA095E76F6C0 /* Namu copy trust config */,
+				810A95C5F8F7BEDBD038739C /* Namu debug ATS localhost */,
+				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
+				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
+				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Namu;
+			productName = Namu;
+			productReference = 13B07F961A680F5B00A75B9A /* Namu.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		83CBB9F71A601CBA00E9B192 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1210;
+				TargetAttributes = {
+					00E356ED1AD99517003FC87E = {
+						TestTargetID = 13B07F861A680F5B00A75B9A;
+					};
+					13B07F861A680F5B00A75B9A = {
+						LastSwiftMigration = 1120;
+					};
+				};
+			};
+			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Namu" */;
+			compatibilityVersion = "Xcode 12.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 83CBB9F61A601CBA00E9B192;
+			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				13B07F861A680F5B00A75B9A /* Namu */,
+				00E356ED1AD99517003FC87E /* NamuTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		13B07F8E1A680F5B00A75B9A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
+				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				32F2739615B9B5B73B458B85 /* PrivacyInfo.xcprivacy in Resources */,
+				2626B268FA4A4FC61FBD47BB /* DMSans-Regular.ttf in Resources */,
+				0C678008B78F86A3B35FEA1B /* DMSans-Medium.ttf in Resources */,
+				4068D289C7C9298CA55368F1 /* DMSans-SemiBold.ttf in Resources */,
+				D5EC20E9E3B256DF06FC9BF1 /* MaterialSymbolsRounded-Subset.ttf in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		367592FD08B48EFEB163BAF8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				582AED47661BAE331FF3652D /* descriptor-vectors.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/.xcode.env.local",
+				"$(SRCROOT)/.xcode.env",
+			);
+			name = "Bundle React Native code and images";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"\\\"$WITH_ENVIRONMENT\\\" \\\"$REACT_NATIVE_XCODE\\\"\"\n";
+		};
+		00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Namu/Pods-Namu-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Namu/Pods-Namu-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Namu/Pods-Namu-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		3D9C6B88D07BCA095E76F6C0 /* Namu copy trust config */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Namu copy trust config";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/copy_trust_config.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		810A95C5F8F7BEDBD038739C /* Namu debug ATS localhost */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)",
+			);
+			name = "Namu debug ATS localhost";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/debug_ats_localhost.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9409B62610EDFC360499E66D /* Namu release guards */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Namu release guards";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/release_guards.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		C38B50BA6285516D6DCD4F65 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Namu-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		CCB6642194E5E63C0A97E2B9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-NamuTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E235C05ADACE081382539298 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Namu/Pods-Namu-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Namu/Pods-Namu-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Namu/Pods-Namu-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		13B07F871A680F5B00A75B9A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				AB3DA47B8A29FC2220F11BC7 /* ActivePointer.swift in Sources */,
+				C0D9C1CEB641D0D74588BF22 /* DescriptorVerifier.swift in Sources */,
+				9CCD7B1D53B6F6A939636FF1 /* ExportService.swift in Sources */,
+				84122CC560920E10584B1BE1 /* GGUFCheck.swift in Sources */,
+				FA7494B99E5B447D28E97951 /* ModelStore.swift in Sources */,
+				DA1425D13627B9C1A62A106A /* NamuBridges.swift in Sources */,
+				3A12ACBEA675C657480C9871 /* NamuConfig.swift in Sources */,
+				7DD1ACE9EBCD8375D8419E11 /* NamuError.swift in Sources */,
+				CB3CF6C119D99018C4E17260 /* NamuExportModule.mm in Sources */,
+				DCF7E50FF93D737D1415886B /* NamuPlatformModule.mm in Sources */,
+				06524C129BBC80515F60C624 /* NamuTransferModule.mm in Sources */,
+				69283D496650ED1A23ACFD81 /* PlatformService.swift in Sources */,
+				5EB8403ABC307E778AE892A2 /* PrivacyCover.swift in Sources */,
+				5654ABC44317557930CE02B0 /* Sha256Streamer.swift in Sources */,
+				5384703F887DC635AF14D9C8 /* StrictJSON.swift in Sources */,
+				0B6B9FBEC7805AC6350443EA /* TransferJournal.swift in Sources */,
+				6FE33708528D812E2C615F91 /* TransferService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		495F947C74447BD74F80FB70 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7A8E418847F1429B59C34C71 /* ActivePointerTests.swift in Sources */,
+				D9F0B9E906ACDE634A7D7325 /* DescriptorVerifierTests.swift in Sources */,
+				DE3AE624C4CB50B0D568795F /* ExportServiceTests.swift in Sources */,
+				9DDDC6CC80956238CE5C62FA /* GGUFCheckTests.swift in Sources */,
+				BF97EFA9CB579D5E7CE699CB /* ModelStoreTests.swift in Sources */,
+				8F99FBEFE712706D27D35497 /* Sha256StreamerTests.swift in Sources */,
+				F65DE0E28AD8554C9358F7E2 /* StrictJSONTests.swift in Sources */,
+				F6A485F66CEE6D6F2A0483FD /* TestSupport.swift in Sources */,
+				08B8657A1BFB364FC7D0664A /* TransferJournalTests.swift in Sources */,
+				EC72E587D9675C1A6A136BA3 /* LocalHTTPServer.swift in Sources */,
+				DEB2279F166C6E0E754DAD8A /* TransferServiceIntegrationTests.swift in Sources */,
+				CD3E5D3CFD0226E77D2923CF /* PlatformServiceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4F4967E6415A57EEA236776D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Namu;
+			target = 13B07F861A680F5B00A75B9A /* Namu */;
+			targetProxy = 75AA65F328DDD77D346BC78C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		13B07F941A680F5B00A75B9A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 3B4392A12AC88292D35C810B /* Pods-Namu.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				ENABLE_BITCODE = NO;
+				INFOPLIST_FILE = Namu/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				NAMU_DEBUG_ALLOW_LOCAL_NETWORKING = NO;
+				NAMU_MODEL_ORIGIN = "http://localhost:8787";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.namuai.offline.internal;
+				PRODUCT_NAME = Namu;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Namu-Swift.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Debug;
+		};
+		13B07F951A680F5B00A75B9A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5709B34CF0A7D63546082F79 /* Pods-Namu.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				INFOPLIST_FILE = Namu/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.namuai.offline;
+				PRODUCT_NAME = Namu;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "Namu-Swift.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = Release;
+		};
+		2CDFC9B7A56EEEF1ED42987A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 44BFDC14AADEC0B9F771CC46 /* Pods-NamuTests.release.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.namuai.offline.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Namu.app/Namu";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		4E70C5046F5B4649F5E9D0E5 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = A6E9051ACADDCB2C56D59A71 /* Pods-NamuTests.debug.xcconfig */;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.namuai.offline.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Namu.app/Namu";
+			};
+			name = Debug;
+		};
+		83CBBA201A601CBA00E9B192 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"\"$(SDKROOT)/usr/lib/swift\"",
+					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
+					"\"$(inherited)\"",
+				);
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DFOLLY_NO_CONFIG",
+					"-DFOLLY_MOBILE=1",
+					"-DFOLLY_USE_LIBCPP=1",
+					"-DFOLLY_CFG_NO_COROUTINES=1",
+					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				PODFILE_DIR = "$(SRCROOT)";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				USE_HERMES = true;
+			};
+			name = Debug;
+		};
+		83CBBA211A601CBA00E9B192 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					/usr/lib/swift,
+					"$(inherited)",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"\"$(SDKROOT)/usr/lib/swift\"",
+					"\"$(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME)\"",
+					"\"$(inherited)\"",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-DFOLLY_NO_CONFIG",
+					"-DFOLLY_MOBILE=1",
+					"-DFOLLY_USE_LIBCPP=1",
+					"-DFOLLY_CFG_NO_COROUTINES=1",
+					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				PODFILE_DIR = "$(SRCROOT)";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				USE_HERMES = true;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Namu" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				13B07F941A680F5B00A75B9A /* Debug */,
+				13B07F951A680F5B00A75B9A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		29FF17B8358E9F430CFBCFE7 /* Build configuration list for PBXNativeTarget "NamuTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2CDFC9B7A56EEEF1ED42987A /* Release */,
+				4E70C5046F5B4649F5E9D0E5 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Namu" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				83CBBA201A601CBA00E9B192 /* Debug */,
+				83CBBA211A601CBA00E9B192 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
+}

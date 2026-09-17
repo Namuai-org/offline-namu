@@ -16,8 +16,7 @@ export class DatabaseReadOnlyError extends Error {
 
 /**
  * Connection wrapper enforcing DB-001: WAL, FULL synchronous, foreign keys,
- * 5 s busy timeout and one serialized asynchronous write queue. Reads bypass
- * the queue (WAL readers do not block the writer).
+ * 5 s busy timeout and one serialized asynchronous queue for the connection.
  */
 export class Database {
   private queue: Promise<unknown> = Promise.resolve();
@@ -39,8 +38,16 @@ export class Database {
     return new Database(driver, readOnly);
   }
 
+  /**
+   * Reads share the single connection, so they are queued behind in-flight
+   * write transactions: a screen can never observe uncommitted rows that a
+   * rollback would later remove. Write transactions are short by design.
+   */
   read(sql: string, params?: SqlValue[]): Promise<SqlResult> {
-    return this.driver.execute(sql, params);
+    const run = () => this.driver.execute(sql, params);
+    const result = this.queue.then(run, run);
+    this.queue = result.catch(() => undefined);
+    return result;
   }
 
   /** Serialized write transaction. Failures surface as StorageWriteError. */

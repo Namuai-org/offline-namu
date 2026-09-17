@@ -58,8 +58,19 @@ Companion to `native-contract.md`. Everything here lives under `ios/`.
 * Verification runs on a utility queue inside a UIKit background task: exact
   length → streaming SHA-256 → bounded GGUF check → `rename(2)` into
   `releases/<sha256>/model.gguf` (0444) → directory fsync.
+* A `resume` during a pending back-off keeps the OS-scheduled retry (and its
+  `TRANSFER_RETRY`/`nextRetryAt`) instead of discarding the task's resume data.
 * `ActivePointer.swift` holds the durable-write primitive (temp → `F_FULLFSYNC`
   → `rename` → directory fsync) with `DurableFile.crashHook` for T10.
+
+* `PlatformService`: thermal and memory observers are installed at launch and
+  fan out to the TurboModule, which only emits once JS has attached its event
+  emitter and stops on `invalidate` (reload-safe). `onSendShortcut` (A11Y-002)
+  comes from a single `UIKeyCommand` (`"\r"` + Command,
+  `wantsPriorityOverSystemBehavior`) declared on `AppDelegate`, the last
+  responder in the chain; a plain Return is never registered or intercepted.
+* `getAvailableMemoryBytes` uses `os_proc_available_memory()`. The simulator
+  returns 0 there, so simulator builds fall back to host VM statistics.
 
 ## Known deviations / open points
 
@@ -70,9 +81,11 @@ Companion to `native-contract.md`. Everything here lives under `ios/`.
   install it reports `phase: installed` until the row is removed.
 * A `waiting` transfer reports `errorCode` `NETWORK_WAIT`, `SPACE_LOW` or
   `TRANSFER_RETRY` (back-off, with `nextRetryAt`).
-* There is no JS entry point for "trial failed" (DL-013 automatic rollback).
-  `ModelStore.restorePrevious(mode: .failedTrial)` exists and is tested, but
-  `restorePrevious()` from JS is always the user-initiated swap.
+* `restorePrevious(true)` (failed trial) marks the abandoned digest bad, removes
+  its release and rejects with `ENGINE_BUSY` while the runtime still maps it;
+  `restorePrevious(false)` is a pure pointer swap that keeps both releases.
+  `repair()` uses a third internal mode: a locally corrupt active file is
+  replaced by the previous version without marking the (good) digest bad.
 * An interrupted self-test marks the candidate digest locally bad (DL-012).
   Only `deleteAllTransferData` or an app update with another artifact clears
   that; re-downloading the same digest is refused with `FILE_DAMAGED`.
@@ -85,10 +98,16 @@ xcodebuild test -workspace Namu.xcworkspace -scheme Namu \
   -destination 'platform=iOS Simulator,name=NamuTest'
 ```
 
-Under XCTest the AppDelegate skips React Native and the transfer service, so the
-hosted tests are hermetic (no Metro, no background session).
+Under XCTest the AppDelegate skips React Native and the shared transfer service,
+so the hosted tests need no Metro. `TransferServiceIntegrationTests` builds its
+own `TransferService` (temporary storage root, unique background-session
+identifier) against an in-process HTTP server on `localhost`, which the Debug
+host's ATS exception allows; it covers the whole install pipeline, T07, T08,
+back-off, pause/resume restart honesty and the update check with no JS runtime.
 
-Xcode 26.5 with only the iOS 26.4 simulator runtime installed offers no
-simulator destinations until the SDK is mapped to that runtime:
-`xcrun simctl runtime match set iphoneos26.5 <runtime build>` (undo with
-`--default`). Installing the matching iOS 26.5 platform makes this unnecessary.
+`name=NamuTest` resolves against the newest installed runtime, so create the
+simulator on it: `xcrun simctl create NamuTest "iPhone 16" <latest iOS runtime id>`.
+If Xcode's SDK has no matching simulator runtime installed at all, xcodebuild
+offers no simulator destinations; either install the platform
+(`xcodebuild -downloadPlatform iOS`) or map the SDK to an installed runtime with
+`xcrun simctl runtime match set iphoneos<sdk> <runtime build>` (undo: `--default`).

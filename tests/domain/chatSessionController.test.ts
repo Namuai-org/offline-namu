@@ -376,3 +376,53 @@ describe('STORAGE_WRITE_FAILED', () => {
     expect(h.engine.events.some(e => e.startsWith('cancel:'))).toBe(true);
   });
 });
+
+describe('review regressions', () => {
+  it('honours a Stop that arrives between the durable commit and the native completion', async () => {
+    h.engine.script.resetDelayMs = 30; // widen the window: session reset in progress
+    const outcome = await h.controller.send(null, 'q');
+    expect(outcome.accepted).toBe(true);
+    h.controller.stop();
+    await waitForIdle(h.controller);
+    expect(h.engine.events.filter(e => e.startsWith('generate:'))).toEqual([]);
+    expect(h.hooks.filter(x => x.startsWith('terminal:'))).toEqual(['terminal:stopped']);
+    expect(h.hooks).not.toContain('success');
+    if (outcome.accepted) {
+      expect(await attemptRow(outcome.attemptId)).toMatchObject({status: 'stopped', finish_reason: 'cancelled'});
+    }
+  });
+
+  it('shows Stopping at once when Stop is pressed while the model is still loading', async () => {
+    h.engine.script.loadDelayMs = 40;
+    const pending = h.controller.send(null, 'q');
+    await sleep(5);
+    expect(h.controller.getState().active?.phase).toBe('preparing');
+    h.controller.stop();
+    expect(h.controller.getState().active?.phase).toBe('stopping');
+    expect(await pending).toEqual({accepted: false, code: 'CANCELLED'});
+    expect((await h.t.db.read('SELECT COUNT(*) AS n FROM turns')).rows[0]).toEqual({n: 0});
+  });
+
+  it('never lets a thermal event erase safe mode', async () => {
+    const safe = await makeHarness({safeModeAtStart: true});
+    safe.controller.onThermalState('critical');
+    expect(safe.controller.getState().blocked).toBe('SAFE_MODE');
+    safe.controller.onThermalState('nominal');
+    safe.timers.advance(30_000);
+    expect(safe.controller.getState().blocked).toBe('SAFE_MODE');
+    safe.controller.leaveSafeMode();
+    expect(safe.controller.getState().blocked).toBeNull();
+    await safe.t.db.close();
+  });
+
+  it('gives quiesce a deadline while an uninterruptible load is in progress', async () => {
+    h.engine.script.loadDelayMs = 200;
+    void h.controller.send(null, 'q');
+    await sleep(5);
+    const pending = h.controller.quiesce();
+    await sleep(5);
+    h.timers.advance(20_000);
+    expect(await pending).toBe(false);
+    await waitForIdle(h.controller);
+  });
+});

@@ -1,4 +1,4 @@
-import {findControlToken, neutralizeControlTokens, safeEmitLength} from '../../src/infrastructure/inference/controlTokens';
+import {finalVisibleText, findControlToken, guardMarkers, neutralizeControlTokens, safeEmitLength} from '../../src/infrastructure/inference/controlTokens';
 import {RUNTIME_FIXTURE} from '../../src/infrastructure/inference/runtimeFixture';
 import fixture from '../../model-release/runtime-fixture.json';
 
@@ -48,5 +48,17 @@ describe('visible-output guard', () => {
     expect(findControlToken(safe, 0)).toBe(-1);
     expect(safe.replace(/​/g, '')).toBe(hostile);
     expect(neutralizeControlTokens('Ƙasa ɗaya — l’école <3')).toBe('Ƙasa ɗaya — l’école <3');
+  });
+});
+
+describe('final visible text (review regression)', () => {
+  const markers = guardMarkers(['<end_of_utterance>']);
+  it('never shows a stop string the template added, even though it is not a control token', () => {
+    expect(finalVisibleText('Answer.<end_of_utterance>', markers)).toBe('Answer.');
+    expect(safeEmitLength('Answer.<end_of_ut', markers)).toBe(7);
+  });
+  it('drops a trailing partial marker but keeps an ordinary trailing "<"', () => {
+    expect(finalVisibleText('The answer is 42<|END', markers)).toBe('The answer is 42');
+    expect(finalVisibleText('use a < b or a <', markers)).toBe('use a < b or a <');
   });
 });

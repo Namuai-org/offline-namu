@@ -15,6 +15,7 @@ import {NamuDialog} from '../../design/components/NamuDialog';
 import {NamuIconButton} from '../../design/components/NamuIconButton';
 import {NamuText} from '../../design/components/NamuText';
 import {NamuTextField} from '../../design/components/NamuTextField';
+import {StatusNotice} from '../../design/components/StatusNotice';
 import {NamuIcon} from '../../design/icons/NamuIcon';
 import {markdownToPlainText} from '../../design/markdown/parseMarkdown';
 import {useNamuTheme} from '../../design/theme';
@@ -50,6 +51,7 @@ export function ConversationsScreen(): React.JSX.Element {
   const [renameError, setRenameError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<ConversationListItem | null>(null);
   const [working, setWorking] = useState(false);
+  const [deleteNotice, setDeleteNotice] = useState<string | null>(null);
   const loading = useRef(false);
 
   const reload = useCallback(async () => {
@@ -82,6 +84,8 @@ export function ConversationsScreen(): React.JSX.Element {
       const page = await services.conversations.listPage({updatedAt: last.updatedAt, id: last.id});
       setItems(current => [...current, ...page]);
       setHasMore(page.length === CONVERSATION_PAGE_SIZE);
+    } catch {
+      // keep what is already listed
     } finally {
       loading.current = false;
     }
@@ -122,7 +126,12 @@ export function ConversationsScreen(): React.JSX.Element {
       setRenameError(t(result.reason === 'empty' ? 'conversations.renameEmpty' : 'conversations.renameTooLong'));
       return;
     }
-    await services.conversations.rename(renaming.id, result.title);
+    try {
+      await services.conversations.rename(renaming.id, result.title);
+    } catch {
+      setRenameError(t('errors.STORAGE_WRITE_FAILED.title'));
+      return;
+    }
     setRenaming(null);
     useAppStore.getState().touchConversations();
   };
@@ -138,6 +147,7 @@ export function ConversationsScreen(): React.JSX.Element {
       if (services.chat.isGeneratingIn(deleting.id)) {
         const stopped = await services.chat.quiesce();
         if (!stopped) {
+          setDeleteNotice(t('conversations.deleteDeferred'));
           return;
         }
       }
@@ -148,6 +158,8 @@ export function ConversationsScreen(): React.JSX.Element {
         void services.setPreference('lastConversationId', null);
       }
       useAppStore.getState().touchConversations();
+    } catch {
+      setDeleteNotice(t('errors.STORAGE_WRITE_FAILED.title'));
     } finally {
       setWorking(false);
       setDeleting(null);
@@ -263,6 +275,7 @@ export function ConversationsScreen(): React.JSX.Element {
           />
         </View>
         <ReturnToAnswerBanner />
+        {deleteNotice ? <StatusNotice tone="error" message={deleteNotice} testID="conversations-notice" /> : null}
         <NamuTextField
           testID="conversation-search"
           label={t('conversations.searchLabel')}

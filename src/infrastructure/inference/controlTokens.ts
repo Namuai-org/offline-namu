@@ -8,11 +8,21 @@ const CONTROL_TOKENS: readonly string[] = RUNTIME_FIXTURE.controlTokens;
 const MAX_LENGTH = CONTROL_TOKENS.reduce((max, t) => Math.max(max, t.length), 0);
 const ZERO_WIDTH_SPACE = '​';
 
-/** Earliest index of any control token, scanning from just before `from`. */
-export function findControlToken(text: string, from: number): number {
-  const start = Math.max(0, from - MAX_LENGTH);
+/**
+ * Markers that must never be visible: every CONTROL token of the locked
+ * vocabulary plus whatever stop strings this request sends to the runtime
+ * (the template may add its own).
+ */
+export function guardMarkers(extraStops: readonly string[] = []): string[] {
+  return [...new Set([...CONTROL_TOKENS, ...extraStops.filter(s => s.length > 0)])];
+}
+
+/** Earliest index of any marker, scanning from just before `from`. */
+export function findControlToken(text: string, from: number, markers: readonly string[] = CONTROL_TOKENS): number {
+  const longest = markers.reduce((max, t) => Math.max(max, t.length), MAX_LENGTH);
+  const start = Math.max(0, from - longest);
   let earliest = -1;
-  for (const token of CONTROL_TOKENS) {
+  for (const token of markers) {
     const at = text.indexOf(token, start);
     if (at !== -1 && (earliest === -1 || at < earliest)) {
       earliest = at;
@@ -26,15 +36,31 @@ export function findControlToken(text: string, from: number): number {
  * control token (for example "<|END_RESP"), so partial markers never flash on
  * screen before the stop sequence is recognized.
  */
-export function safeEmitLength(raw: string): number {
-  const windowStart = Math.max(0, raw.length - (MAX_LENGTH - 1));
+export function safeEmitLength(
+  raw: string,
+  markers: readonly string[] = CONTROL_TOKENS,
+  minFragment = 1,
+): number {
+  const longest = markers.reduce((max, t) => Math.max(max, t.length), MAX_LENGTH);
+  const windowStart = Math.max(0, raw.length - (longest - 1));
   for (let i = windowStart; i < raw.length; i++) {
     const suffix = raw.slice(i);
-    if (CONTROL_TOKENS.some(token => token.length > suffix.length && token.startsWith(suffix))) {
+    if (suffix.length >= minFragment && markers.some(token => token.length > suffix.length && token.startsWith(suffix))) {
       return i;
     }
   }
   return raw.length;
+}
+
+/**
+ * Final visible text: cut at the first marker and drop a trailing partial
+ * marker of two or more characters (an answer that ended mid-marker because of
+ * a stop or the length limit). A lone "<" is ordinary text and is kept.
+ */
+export function finalVisibleText(text: string, markers: readonly string[] = CONTROL_TOKENS): string {
+  const at = findControlToken(text, 0, markers);
+  const cut = at === -1 ? text : text.slice(0, at);
+  return cut.slice(0, safeEmitLength(cut, markers, 2));
 }
 
 /**

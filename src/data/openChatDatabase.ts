@@ -29,9 +29,11 @@ export interface OpenOptions {
  *  - checksum-locked ordered migrations, each transactional;
  *  - a consistent `VACUUM INTO` backup before migrating an existing database
  *    (never a naive file copy of a live WAL database);
- *  - on failure the prior database is restored/preserved and the app enters
- *    read-only recovery; the user's database is never deleted or recreated;
- *  - the backup is removed after validation plus one clean restart.
+ *  - on failure NOTHING is replaced or removed: namu.sqlite and the backup both
+ *    stay on disk and the app enters read-only recovery with export. Each
+ *    migration is transactional, so a failed apply leaves namu.sqlite at its
+ *    last good version; after a failed validation, recovery reads the backup;
+ *  - the backup is removed only after validation plus one clean restart.
  */
 export async function openChatDatabase(options: OpenOptions): Promise<OpenResult> {
   const {factory, directory, now} = options;
@@ -54,6 +56,26 @@ export async function openChatDatabase(options: OpenOptions): Promise<OpenResult
 
   const existingDatabase = plan.applied.length > 0;
   if (plan.pending.length === 0) {
+    // A backup without the cleanup flag means the previous migration run did
+    // not finish validation (failure or process death): validate before use.
+    if (existingDatabase && (await factory.exists(directory, MIGRATION_BACKUP_NAME))) {
+      const flagged = await driver
+        .execute('SELECT 1 FROM preferences WHERE key = ?', [CLEANUP_FLAG])
+        .then(r => r.rows.length > 0, () => false);
+      if (!flagged) {
+        try {
+          await validateDatabase(driver, plan.applied[plan.applied.length - 1]!);
+        } catch {
+          await driver.close().catch(() => undefined);
+          return recover(options, 'validation-failed', true);
+        }
+        await driver.execute('INSERT OR REPLACE INTO preferences (key, value_json) VALUES (?, ?)', [
+          CLEANUP_FLAG,
+          JSON.stringify({state: 'await-clean-restart'}),
+        ]);
+        return {mode: 'normal', db: await Database.open(driver)};
+      }
+    }
     const db = await Database.open(driver);
     await finishDeferredBackupCleanup(db, factory, directory);
     return {mode: 'normal', db};
@@ -78,12 +100,11 @@ export async function openChatDatabase(options: OpenOptions): Promise<OpenResult
     await validateDatabase(driver, plan.pending[plan.pending.length - 1]!.version);
   } catch (error) {
     await driver.close().catch(() => undefined);
-    if (backedUp) {
-      // Each migration is transactional, so the file is already at the last
-      // good version; restoring the backup also covers validation failures.
-      await factory.replace(directory, MIGRATION_BACKUP_NAME, CHAT_DB_NAME).catch(() => undefined);
-    }
-    return recover(options, error instanceof MigrationError ? error.kind : 'apply-failed');
+    const kind = error instanceof MigrationError ? error.kind : 'apply-failed';
+    // Nothing is replaced or deleted. A failed apply rolled back, so
+    // namu.sqlite is still the last good version; after a failed validation
+    // the consistent backup is the safer thing to read for export.
+    return recover(options, kind, backedUp && kind === 'validation-failed');
   }
 
   const db = await Database.open(driver);
@@ -112,16 +133,20 @@ async function finishDeferredBackupCleanup(
   await db.write(tx => tx.execute('DELETE FROM preferences WHERE key = ?', [CLEANUP_FLAG]));
 }
 
-async function recover(options: OpenOptions, reason: string): Promise<OpenResult> {
+async function recover(options: OpenOptions, reason: string, preferBackup = false): Promise<OpenResult> {
   const {factory, directory} = options;
-  try {
-    if (await factory.exists(directory, CHAT_DB_NAME)) {
-      const driver = await factory.openReadOnly(directory, CHAT_DB_NAME);
-      const db = await Database.open(driver, {readOnly: true});
-      return {mode: 'recovery', db, reason};
+  const candidates = preferBackup ? [MIGRATION_BACKUP_NAME, CHAT_DB_NAME] : [CHAT_DB_NAME, MIGRATION_BACKUP_NAME];
+  for (const name of candidates) {
+    try {
+      if (await factory.exists(directory, name)) {
+        const driver = await factory.openReadOnly(directory, name);
+        const db = await Database.open(driver, {readOnly: true});
+        await db.read('SELECT COUNT(*) FROM conversations');
+        return {mode: 'recovery', db, reason};
+      }
+    } catch {
+      // try the next candidate; nothing is ever deleted here.
     }
-  } catch {
-    // fall through: history cannot be read, but it is still not deleted.
   }
   return {mode: 'recovery', db: null, reason};
 }

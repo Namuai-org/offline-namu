@@ -66,7 +66,8 @@
     "ineligibleMetal": "Wannan na'urar ba za ta iya tafiyar da injin AI na Namu ba.",
     "ineligibleKeep": "Har yanzu za ka iya karanta hirarrakin da aka adana, canja saituna da buɗe Taimako.",
     "needSpace": "Ka ƙara sarari na {{bytes}} a ma'aji domin ci gaba.",
-    "descriptorInvalid": "Wannan kwafin Namu ya kasa tabbatar da bayanan saukewarsa. Ka sabunta manhajar sannan ka sake gwadawa."
+    "descriptorInvalid": "Wannan kwafin Namu ya kasa tabbatar da bayanan saukewarsa. Ka sabunta manhajar sannan ka sake gwadawa.",
+    "checkFailed": "Namu ya kasa duba wannan wayar. Ka sake gwadawa."
   },
   "progress": {
     "title": "Ana shirya Namu",
@@ -173,7 +174,8 @@
     "deleteStopFirst": "Namu na amsawa a cikin wannan tattaunawa. Za a tsayar da amsar kafin a share.",
     "inTitle": "Take",
     "inYou": "Saƙonka",
-    "inNamu": "Amsar Namu"
+    "inNamu": "Amsar Namu",
+    "deleteDeferred": "Namu ya kasa tabbatar da cewa amsar ta tsaya, saboda haka ba a share komai ba. Ka rufe manhajar ka sake buɗe ta, sannan ka sake gwadawa."
   },
   "export": {
     "warningTitle": "Abin da aka fitar ya bar kariyar Namu",
@@ -238,7 +240,8 @@
     "removeBody": "Hirarrakinka za su ci gaba da kasancewa a wannan wayar, amma Namu ba zai iya rubuta sababbin amsoshi ba sai ka sake sauke AI.",
     "removeConfirm": "Cire",
     "chatsKept": "Namu ba ya taɓa share hirarrakinka domin samar wa AI sarari.",
-    "busy": "Namu ya kasa tabbatar da cewa amsar da ake yi ta tsaya. Ka rufe manhajar ka sake buɗe ta, sannan ka sake gwadawa."
+    "busy": "Namu ya kasa tabbatar da cewa amsar da ake yi ta tsaya. Ka rufe manhajar ka sake buɗe ta, sannan ka sake gwadawa.",
+    "actionFailed": "Hakan bai yi aiki ba. Ba a canja hirarrakinka ko AI ɗin da ake amfani da shi ba. Ka sake gwadawa."
   },
   "privacy": {
     "title": "Sirri da bayanai",

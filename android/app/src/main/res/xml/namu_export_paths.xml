@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Contract §7: a single shareable path, cacheDir/namu-exports. -->
+<paths>
+    <cache-path name="exports" path="namu-exports/" />
+</paths>

@@ -45,20 +45,21 @@ export function useExport(): {request: (target: Target) => void; dialogs: React.
     }
     setWorking(true);
     let exportId: string | null = null;
+    let handedOver = false;
     try {
       exportId =
         target.kind === 'all'
           ? await services.exporter.exportAll(labels())
           : await services.exporter.exportConversation(target.id, labels());
       setPending(null);
-      await services.exporter.share(exportId);
+      handedOver = await services.exporter.share(exportId);
     } catch {
       // Interrupted exports leave the source data unchanged (SEC-005, T23).
       setPending(null);
       setFailed(true);
     } finally {
       if (exportId) {
-        await services.exporter.deleteExport(exportId).catch(() => undefined);
+        await services.exporter.cleanupAfterShare(exportId, handedOver).catch(() => undefined);
       }
       setWorking(false);
     }

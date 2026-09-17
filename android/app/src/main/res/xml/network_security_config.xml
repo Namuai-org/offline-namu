@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Release: cleartext is forbidden everywhere (contract §1, SEC-003). OS TLS validation
+     only; no certificate pinning. The debug source set overrides this file. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

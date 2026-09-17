@@ -42,8 +42,11 @@ export const Composer = React.forwardRef<
   const draftKey = conversationId ?? NEW_CHAT_DRAFT_KEY;
   const [text, setText] = useState('');
   const [focused, setFocused] = useState(false);
+  const [draftLoaded, setDraftLoaded] = useState(false);
   const textRef = useRef('');
   const keyRef = useRef(draftKey);
+  /** Text last typed under the current key; read by the cleanup of the draft effect. */
+  const latestForKey = useRef('');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sending = useRef(false);
 
@@ -57,22 +60,38 @@ export const Composer = React.forwardRef<
   useEffect(() => {
     let cancelled = false;
     keyRef.current = draftKey;
+    // Clear synchronously: until this conversation's draft has loaded the
+    // field is empty and nothing can be submitted.
+    textRef.current = '';
+    latestForKey.current = '';
+    setText('');
+    setDraftLoaded(false);
     void services.drafts
       ?.get(draftKey)
       .then(saved => {
-        if (!cancelled) {
+        // Keep anything typed while the draft was loading.
+        if (!cancelled && textRef.current.length === 0) {
           textRef.current = saved;
+          latestForKey.current = saved;
           setText(saved);
         }
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) {
+          setDraftLoaded(true);
+        }
+      });
+    if (!services.drafts) {
+      setDraftLoaded(true);
+    }
     return () => {
       cancelled = true;
       if (saveTimer.current) {
         clearTimeout(saveTimer.current);
         saveTimer.current = null;
       }
-      persist(draftKey, textRef.current);
+      persist(draftKey, latestForKey.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey]);
@@ -90,6 +109,7 @@ export const Composer = React.forwardRef<
 
   const change = (value: string) => {
     textRef.current = value;
+    latestForKey.current = value;
     setText(value);
     if (saveTimer.current) {
       clearTimeout(saveTimer.current);
@@ -107,7 +127,7 @@ export const Composer = React.forwardRef<
   const empty = text.trim().length === 0;
   const generating = mode !== 'idle';
   // Send is disabled only when empty, invalid, blocked or stopping (S04).
-  const sendDisabled = empty || tooLong || blocked || readOnly || generating;
+  const sendDisabled = empty || tooLong || blocked || readOnly || generating || !draftLoaded;
 
   const submit = async () => {
     if (sendDisabled || sending.current) {
@@ -124,6 +144,7 @@ export const Composer = React.forwardRef<
           saveTimer.current = null;
         }
         textRef.current = '';
+        latestForKey.current = '';
         setText('');
       }
     } finally {

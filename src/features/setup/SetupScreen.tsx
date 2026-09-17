@@ -51,8 +51,10 @@ function DeviceCheck(): React.JSX.Element {
   const [confirmMetered, setConfirmMetered] = useState(false);
   const [starting, setStarting] = useState(false);
 
-  useEffect(() => {
-    void (async () => {
+  const [checkFailed, setCheckFailed] = useState(false);
+  const runCheck = useCallback(async () => {
+    setCheckFailed(false);
+    try {
       const [p, d] = await Promise.all([services.device.profile(), services.transfer.bundledDescriptor()]);
       await services.install.refresh().catch(() => undefined);
       if (!isMounted()) {
@@ -65,8 +67,16 @@ function DeviceCheck(): React.JSX.Element {
           allowSimulatorWithoutMetal: services.info.isInternalBuild && services.info.isSimulator,
         }),
       );
-    })();
+    } catch {
+      if (isMounted()) {
+        setCheckFailed(true);
+      }
+    }
   }, [isMounted, services]);
+
+  useEffect(() => {
+    void runCheck();
+  }, [runCheck]);
 
   const leave = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Tabs'));
 
@@ -91,7 +101,17 @@ function DeviceCheck(): React.JSX.Element {
     return (
       <Screen edges={['top', 'bottom', 'left', 'right']} testID="setup-checking">
         <NamuText variant="title" accessibilityRole="header">{t('setup.title')}</NamuText>
-        <NamuText tone="secondary">{t('setup.checking')}</NamuText>
+        {checkFailed ? (
+          <StatusNotice
+            tone="error"
+            testID="setup-check-failed"
+            message={t('setup.checkFailed')}
+            action={{label: t('common.retry'), onPress: () => void runCheck()}}
+          />
+        ) : (
+          <NamuText tone="secondary">{t('setup.checking')}</NamuText>
+        )}
+        <NamuButton label={t('setup.later')} variant="text" onPress={leave} />
       </Screen>
     );
   }
@@ -219,10 +239,10 @@ function SetupProgress({transfer, installed}: {transfer: TransferInfo | null; in
   }, [phase, services]);
 
   useEffect(() => {
-    void finishIfStaged();
+    void finishIfStaged().catch(() => undefined);
     const subscription = AppState.addEventListener('change', state => {
       if (state === 'active') {
-        void services.install.refresh().then(finishIfStaged);
+        void services.install.refresh().then(finishIfStaged).catch(() => undefined);
       }
     });
     return () => subscription.remove();
@@ -298,8 +318,14 @@ function SetupProgress({transfer, installed}: {transfer: TransferInfo | null; in
               onPress={() =>
                 act(async () => {
                   // Explicit user retry only; no hidden automatic retries (DL-006/007).
-                  await services.transfer.cancel(transfer.transferId);
-                  await services.transfer.start('bundled', transfer.meteredConsent);
+                  if (transfer.errorCode === 'TRANSFER_RETRY' || transfer.errorCode === 'SPACE_LOW' || transfer.errorCode === 'NETWORK_WAIT') {
+                    // Valid partial data is retained: continue, do not start over.
+                    await services.transfer.resume(transfer.transferId, transfer.meteredConsent);
+                  } else {
+                    // Damaged/unverifiable/incompatible staging was already removed natively.
+                    await services.transfer.cancel(transfer.transferId);
+                    await services.transfer.start('bundled', transfer.meteredConsent);
+                  }
                 })
               }
               testID="setup-retry"

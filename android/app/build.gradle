@@ -1,0 +1,173 @@
+apply plugin: "com.android.application"
+apply plugin: "org.jetbrains.kotlin.android"
+apply plugin: "com.facebook.react"
+
+/**
+ * This is the configuration block to customize your React Native Android app.
+ * By default you don't need to apply any configuration, just uncomment the lines you need.
+ */
+react {
+    /* Autolinking */
+    autolinkLibrariesWithApp()
+}
+
+/**
+ * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+ */
+def enableProguardInReleaseBuilds = false
+
+/**
+ * The preferred build flavor of JavaScriptCore (JSC). Unused: Namu runs Hermes (PRD §2).
+ */
+def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.0.1'
+
+// ---- Namu build configuration (docs/engineering/native-contract.md §1; not secrets) ---------
+// Release: ./gradlew bundleRelease -PNAMU_MODEL_ORIGIN=https://<distribution-domain>
+def namuReleaseOrigin = (project.findProperty("NAMU_MODEL_ORIGIN") ?: "").toString()
+// Debug: fault server on the host (emulator loopback). For a USB device use
+// `adb reverse tcp:8787 tcp:8787` with -PNAMU_DEBUG_MODEL_ORIGIN=http://localhost:8787
+def namuDebugOrigin = (project.findProperty("NAMU_DEBUG_MODEL_ORIGIN") ?: "http://10.0.2.2:8787").toString()
+def namuRuntimeBuildId = "llamarn-0.12.9-b10256" // STK-002: llama.rn 0.12.9 / llama.cpp b10256
+
+android {
+    ndkVersion rootProject.ext.ndkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+    compileSdk rootProject.ext.compileSdkVersion
+
+    namespace "org.namuai.offline"
+    defaultConfig {
+        applicationId "org.namuai.offline" // STK-004
+        minSdkVersion rootProject.ext.minSdkVersion // 29 (DEV-001)
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0.0"
+        buildConfigField "String", "RUNTIME_BUILD_ID", "\"${namuRuntimeBuildId}\""
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        buildConfig true
+    }
+    sourceSets {
+        main {
+            // The platform-independent native layer lives in android/namu-core (a standalone,
+            // JVM-tested Gradle build). The app compiles the SAME sources with its own Kotlin
+            // version instead of consuming that build's output; see
+            // docs/engineering/android-native-notes.md for why this is the least risky wiring.
+            java.srcDirs += ["../namu-core/src/main/kotlin"]
+        }
+    }
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+    buildTypes {
+        debug {
+            applicationIdSuffix ".internal" // STK-004 internal builds
+            signingConfig signingConfigs.debug
+            buildConfigField "String", "MODEL_ORIGIN", "\"${namuDebugOrigin}\""
+            buildConfigField "boolean", "INTERNAL_BUILD", "true"
+            ndk {
+                abiFilters "arm64-v8a", "x86_64" // x86_64: emulators, functional UI tests only
+            }
+        }
+        release {
+            // Caution! In production, you need to generate your own keystore file.
+            // see https://reactnative.dev/docs/signed-apk-android.
+            signingConfig signingConfigs.debug
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            buildConfigField "String", "MODEL_ORIGIN", "\"${namuReleaseOrigin}\""
+            buildConfigField "boolean", "INTERNAL_BUILD", "false"
+            ndk {
+                abiFilters "arm64-v8a" // DEV-001
+                debugSymbolLevel "FULL" // REL-002: retain native symbols
+            }
+        }
+    }
+    packaging {
+        jniLibs {
+            // DEV-005: keep .so files uncompressed and page-aligned inside the APK.
+            useLegacyPackaging = false
+        }
+    }
+}
+
+// DEV-001: whatever reactNativeArchitectures says, a release package carries arm64-v8a only.
+androidComponents {
+    onVariants(selector().withBuildType("release")) { variant ->
+        variant.packaging.jniLibs.excludes.addAll([
+            "**/x86/**", "**/x86_64/**", "**/armeabi-v7a/**", "**/armeabi/**", "**/mips/**", "**/mips64/**", "**/riscv64/**",
+        ])
+    }
+}
+
+// ---- Fonts: single source of truth is src/design/fonts (DS-001); never duplicated in git -----
+def copyNamuFonts = tasks.register("copyNamuFonts", Copy) {
+    from("../../src/design/fonts") {
+        include "*.ttf"
+    }
+    into("src/main/assets/fonts")
+}
+preBuild.dependsOn(copyNamuFonts)
+
+// ---- Release gate (contract §1, §4) -------------------------------------------------------------
+def verifyNamuReleaseConfig = tasks.register("verifyNamuReleaseConfig") {
+    def origin = namuReleaseOrigin
+    def trustDir = file("src/main/assets/namu")
+    doLast {
+        if (!origin.startsWith("https://") || origin.length() <= "https://".length() || origin.endsWith("/")) {
+            throw new GradleException(
+                "Release builds need -PNAMU_MODEL_ORIGIN=https://<distribution-domain> (HTTPS, no trailing slash).")
+        }
+        ["release-keys.json", "initial-descriptor.json", "known-bad.json"].each { name ->
+            if (!new File(trustDir, name).isFile()) {
+                throw new GradleException("Release builds need app/src/main/assets/namu/${name} from the release runbook.")
+            }
+        }
+        def parsed = new groovy.json.JsonSlurper().parse(new File(trustDir, "release-keys.json"))
+        def keyList = (parsed instanceof Map) ? parsed.get("keys") : null
+        if (!(keyList instanceof List) || keyList.isEmpty()) {
+            throw new GradleException("assets/namu/release-keys.json contains no verification key.")
+        }
+        keyList.each { entry ->
+            def keyId = (entry instanceof Map) ? String.valueOf(entry.get("key_id")) : ""
+            if (keyId.isEmpty() || keyId == "null" || keyId.startsWith("dev-")) {
+                throw new GradleException(
+                    "Release builds refuse development verification keys (key_id '${keyId}').")
+            }
+        }
+    }
+}
+tasks.configureEach { task ->
+    if (task.name == "preReleaseBuild") {
+        task.dependsOn(verifyNamuReleaseConfig)
+    }
+}
+
+dependencies {
+    // The version of react-native is set by the React Native Gradle Plugin
+    implementation("com.facebook.react:react-android")
+
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android")
+    } else {
+        implementation jscFlavor
+    }
+
+    // Namu native layer. Exact versions only (STK-001).
+    // OkHttp: the version React Native 0.86 resolves (react-native/gradle/libs.versions.toml).
+    implementation("com.squareup.okhttp3:okhttp:4.9.2")
+    implementation("androidx.work:work-runtime-ktx:2.10.5")
+    implementation("com.google.crypto.tink:tink-android:1.23.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("androidx.core:core:1.13.1")
+
+    // Instrumented tests (journal + background entry points with no JS runtime, QA-004).
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.work:work-testing:2.10.5")
+}

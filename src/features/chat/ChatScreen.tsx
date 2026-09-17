@@ -139,7 +139,10 @@ export function ChatScreen(): React.JSX.Element {
     if (!hasOlder || !oldest || !conversationId || !services.chatRepository) {
       return;
     }
-    const page = await services.chatRepository.getTurnsBefore(conversationId, oldest.ordinal);
+    const page = await services.chatRepository.getTurnsBefore(conversationId, oldest.ordinal).catch(() => null);
+    if (!page) {
+      return;
+    }
     setTurns(current => [...current, ...page.filter(p => !current.some(c => c.id === p.id))]);
     setHasOlder(page.length === TURN_PAGE_SIZE);
   };
@@ -149,7 +152,10 @@ export function ChatScreen(): React.JSX.Element {
     if (!hasNewer || !newest || !conversationId || !services.chatRepository) {
       return;
     }
-    const page = await services.chatRepository.getTurnsAfter(conversationId, newest.ordinal);
+    const page = await services.chatRepository.getTurnsAfter(conversationId, newest.ordinal).catch(() => null);
+    if (!page) {
+      return;
+    }
     setTurns(current => [...page.reverse().filter(p => !current.some(c => c.id === p.id)), ...current]);
     setHasNewer(page.length === TURN_PAGE_SIZE);
   };
@@ -226,8 +232,9 @@ export function ChatScreen(): React.JSX.Element {
   };
 
   const showAttempts = async (turn: Turn) => {
-    if (services.chatRepository) {
-      setAttemptsFor({turn, attempts: await services.chatRepository.getAttempts(turn.id)});
+    const attempts = await services.chatRepository?.getAttempts(turn.id).catch(() => null);
+    if (attempts) {
+      setAttemptsFor({turn, attempts});
     }
   };
 
@@ -241,7 +248,7 @@ export function ChatScreen(): React.JSX.Element {
     setLanguageMenu(false);
     if (conversation && services.conversations && !readOnly) {
       // CTX-006: affects the next answer, not existing text.
-      void services.conversations.setResponseLanguage(conversation.id, language);
+      void services.conversations.setResponseLanguage(conversation.id, language).catch(() => undefined);
       setConversation({...conversation, responseLanguage: language});
     } else {
       setNewChatLanguage(language);
@@ -270,6 +277,7 @@ export function ChatScreen(): React.JSX.Element {
         answer = (
           <View style={{gap: spacing.xs}}>
             <ActiveAnswer
+              key={active.attemptId!}
               attemptId={active.attemptId!}
               initialText={attempt?.id === active.attemptId ? attempt.content : ''}
               statusLabel={active.phase === 'stopping' ? t('chat.stopping') : t('chat.answering')}

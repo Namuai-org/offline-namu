@@ -16,7 +16,7 @@ export interface TransferService {
   resolveArtifactPath(artifactId: string): Promise<string>;
   setRuntimeReference(artifactId: string | null): void;
   noteSuccessfulForegroundSession(): Promise<void>;
-  restorePrevious(): Promise<TransferSnapshot>;
+  restorePrevious(markAbandonedBad: boolean): Promise<TransferSnapshot>;
   repair(): Promise<TransferSnapshot>;
   removeModel(): Promise<void>;
   deleteAllTransferData(): Promise<void>;
@@ -79,6 +79,13 @@ export interface ExportService {
   exportAll(labels: ExportLabels): Promise<string>;
   share(exportId: string): Promise<boolean>;
   deleteExport(exportId: string): Promise<void>;
+  /**
+   * SEC-005: delete the temporary file after sharing *when possible*. iOS
+   * reports completion, so the file is removed at once. Android only reports
+   * that the chooser opened — the receiving app still needs the file, so it is
+   * left for the 24-hour sweep. A failed share always deletes.
+   */
+  cleanupAfterShare(exportId: string, handedOver: boolean): Promise<void>;
   sweep(): Promise<number>;
   deleteAll(): Promise<void>;
 }

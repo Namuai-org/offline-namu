@@ -320,8 +320,10 @@ Startup reconciliation (DL-012, DL-014), before answering the first snapshot:
 
 Retention (DL-013): keep `previous` until 7 days **and** three successful
 foreground sessions have passed, then delete it when no runtime reference is
-held. `restorePrevious` swaps the pointer atomically and marks the abandoned
-digest bad only when invoked automatically after a failed trial.
+held. `restorePrevious(markAbandonedBad)` swaps the pointer atomically;
+`markAbandonedBad = true` is the automatic failed-trial restore requested by JS
+when the active artifact fails to load during its trial, `false` is the manual
+"Restore previous version" action.
 `removeModel` and `deleteAllTransferData` reject with `ENGINE_BUSY` while a
 runtime reference is set (SEC-006).
 

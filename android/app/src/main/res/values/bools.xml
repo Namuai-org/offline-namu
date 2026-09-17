@@ -1,0 +1,4 @@
+<resources>
+    <!-- The UIDT JobService uses API 34 classes; it is only enabled where they exist. -->
+    <bool name="namu_uidt_enabled">false</bool>
+</resources>

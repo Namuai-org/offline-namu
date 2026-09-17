@@ -55,7 +55,7 @@ export function SettingsScreen(): React.JSX.Element {
             testID={`settings-language-${language}`}
             title={t(`languageNames.${language}`)}
             selected={preferences.appLanguage === language}
-            onPress={() => void services.setPreference('appLanguage', language)}
+            onPress={() => void services.setPreference('appLanguage', language).catch(() => undefined)}
           />
         ))}
       </View>
@@ -69,7 +69,7 @@ export function SettingsScreen(): React.JSX.Element {
             key={language}
             title={t(`responseLanguage.${language}`)}
             selected={preferences.responseLanguage === language}
-            onPress={() => void services.setPreference('responseLanguage', language)}
+            onPress={() => void services.setPreference('responseLanguage', language).catch(() => undefined)}
           />
         ))}
       </View>
@@ -85,7 +85,7 @@ export function SettingsScreen(): React.JSX.Element {
             testID={`settings-theme-${theme.value}`}
             title={t(theme.key)}
             selected={preferences.theme === theme.value}
-            onPress={() => void services.setPreference('theme', theme.value)}
+            onPress={() => void services.setPreference('theme', theme.value).catch(() => undefined)}
           />
         ))}
       </View>

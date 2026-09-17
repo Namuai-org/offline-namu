@@ -60,6 +60,7 @@ describe('T02 / NFR-012 local chat journey in airplane mode', () => {
 
     // Stop keeps partial output (CHAT-004).
     world.engine.script.tokenDelayMs = 20;
+    world.engine.script.tokens = Array.from({length: 200}, (_, i) => `w${i} `);
     await sendMessage('second question');
     await waitFor(() => screen.getByTestId('composer-stop'));
     await act(async () => new Promise(resolve => setTimeout(resolve, 70)));
@@ -145,7 +146,7 @@ describe('S05–S08 history and data controls', () => {
     await waitFor(() => screen.getByText('Export leaves Namu\'s protection'));
     expect(world.exporter.calls.filter(c => c.startsWith('conversation'))).toEqual([]); // nothing before consent
     await fireEvent.press(screen.getByTestId('export-confirm'));
-    await waitFor(() => expect(world.exporter.calls).toContain('delete:export-1'));
+    await waitFor(() => expect(world.exporter.calls).toContain('cleanup:export-1:true'));
     expect(world.exporter.calls).toEqual(expect.arrayContaining([`conversation:${id}:You`, 'share:export-1']));
 
     await fireEvent.press(screen.getByTestId(`conversation-menu-${id}`));

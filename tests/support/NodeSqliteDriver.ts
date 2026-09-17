@@ -95,11 +95,6 @@ export class NodeSqliteFactory implements SqlDriverFactory {
       fs.rmSync(path.join(directory, name + suffix), {force: true});
     }
   }
-
-  async replace(directory: string, source: string, target: string): Promise<void> {
-    await this.remove(directory, target);
-    fs.renameSync(path.join(directory, source), path.join(directory, target));
-  }
 }
 
 export function makeTempDir(): string {

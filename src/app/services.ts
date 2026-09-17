@@ -39,6 +39,8 @@ export interface AppServices {
   /** SEC-006 Delete all Namu data. Resolves false when deletion was deferred. */
   deleteAllData(): Promise<boolean>;
   announce(message: string): void;
+  /** Detaches native listeners; called before services are rebuilt (SEC-006 restart). */
+  dispose(): void;
 }
 
 export interface PlatformAdapters {
@@ -171,6 +173,7 @@ export async function createAppServices(adapters: PlatformAdapters): Promise<App
     loadMarker,
     diagnostics: {record},
     onSuccessfulAnswer: () => void transfer.noteSuccessfulForegroundSession().catch(() => undefined),
+    onActiveLoadFailed: artifactId => install.handleActiveLoadFailure(artifactId),
     // A11Y-001: announced once per generation, never per token.
     onAnswering: () => adapters.announce(i18n.t('chat.announceAnswering')),
     onTerminal: status => {
@@ -194,8 +197,8 @@ export async function createAppServices(adapters: PlatformAdapters): Promise<App
 
   // INF-007: native memory/thermal events reach the controller even when no
   // React screen is mounted — subscriptions live here, not in components.
-  device.onMemoryPressure(level => chat.onMemoryPressure(level));
-  device.onThermalState(state => chat.onThermalState(state));
+  const unsubscribeMemory = device.onMemoryPressure(level => chat.onMemoryPressure(level));
+  const unsubscribeThermal = device.onThermalState(state => chat.onThermalState(state));
   device.thermalState().then(state => chat.onThermalState(state)).catch(() => undefined);
 
   // UX-001: reopen the last viewed conversation without loading the model.
@@ -247,5 +250,10 @@ export async function createAppServices(adapters: PlatformAdapters): Promise<App
     setPreference,
     deleteAllData,
     announce: adapters.announce,
+    dispose: () => {
+      unsubscribeMemory();
+      unsubscribeThermal();
+      install.stop();
+    },
   };
 }

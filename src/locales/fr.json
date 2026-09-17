@@ -66,7 +66,8 @@
     "ineligibleMetal": "Cet appareil ne peut pas faire fonctionner le moteur d'IA de Namu.",
     "ineligibleKeep": "Vous pouvez toujours lire les discussions enregistrées, modifier les réglages et ouvrir l'aide.",
     "needSpace": "Libérez encore {{bytes}} d'espace pour continuer.",
-    "descriptorInvalid": "Cette copie de Namu ne peut pas vérifier ses informations de téléchargement. Mettez l'application à jour puis réessayez."
+    "descriptorInvalid": "Cette copie de Namu ne peut pas vérifier ses informations de téléchargement. Mettez l'application à jour puis réessayez.",
+    "checkFailed": "Namu n'a pas pu vérifier ce téléphone. Réessayez."
   },
   "progress": {
     "title": "Installation de Namu",
@@ -173,7 +174,8 @@
     "deleteStopFirst": "Namu répond dans cette conversation. La réponse sera arrêtée avant la suppression.",
     "inTitle": "Titre",
     "inYou": "Votre message",
-    "inNamu": "Réponse de Namu"
+    "inNamu": "Réponse de Namu",
+    "deleteDeferred": "Namu n'a pas pu confirmer l'arrêt de la réponse : rien n'a été supprimé. Fermez puis rouvrez l'application, et réessayez."
   },
   "export": {
     "warningTitle": "L'export quitte la protection de Namu",
@@ -238,7 +240,8 @@
     "removeBody": "Vos discussions restent sur ce téléphone, mais Namu ne pourra plus écrire de nouvelles réponses tant que vous n'aurez pas téléchargé l'IA hors ligne à nouveau.",
     "removeConfirm": "Supprimer",
     "chatsKept": "Namu ne supprime jamais vos discussions pour faire de la place à l'IA hors ligne.",
-    "busy": "Namu n'a pas pu confirmer l'arrêt de la réponse en cours. Fermez puis rouvrez l'application, et réessayez."
+    "busy": "Namu n'a pas pu confirmer l'arrêt de la réponse en cours. Fermez puis rouvrez l'application, et réessayez.",
+    "actionFailed": "Cela n'a pas fonctionné. Vos discussions et l'IA hors ligne actuelle n'ont pas été modifiées. Réessayez."
   },
   "privacy": {
     "title": "Confidentialité et données",

@@ -1,0 +1,7 @@
+<resources>
+    <string name="namu_transfer_channel_name">Téléchargement de l’IA hors ligne</string>
+    <string name="namu_transfer_channel_description">Progression du téléchargement unique de l’IA hors ligne</string>
+    <string name="namu_transfer_title">Téléchargement de l’IA hors ligne</string>
+    <string name="namu_transfer_verifying">Vérification du téléchargement</string>
+    <string name="namu_export_share_title">Exporter</string>
+</resources>

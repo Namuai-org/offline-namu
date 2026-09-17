@@ -22,9 +22,11 @@ import {
 } from '../../domain/inference/productionConfig';
 import {RUNTIME_FIXTURE} from './runtimeFixture';
 import {SELF_TEST_MESSAGES} from './selfTestFixture';
-import {findControlToken, neutralizeControlTokens, safeEmitLength} from './controlTokens';
+import {finalVisibleText, findControlToken, guardMarkers, neutralizeControlTokens, safeEmitLength} from './controlTokens';
 
 export const EXPECTED_LLAMA_CPP_BUILD = '10256';
+/** Budgeting counts several candidate prompts; keep them so generate() reuses the chosen one. */
+const FORMAT_CACHE_ENTRIES = 12;
 
 export interface LlamaRnEngineDeps {
   platform: 'android' | 'ios';
@@ -51,10 +53,11 @@ export class LlamaRnEngine implements NamuEngine {
   private context: LlamaContext | null = null;
   private artifactId: string | null = null;
   private engineState: EngineState = 'unloaded';
-  private lastFormatted: Formatted | null = null;
+  private readonly formatCache = new Map<string, Formatted>();
   private activeRequestId: string | null = null;
   private cancelRequested = false;
   private generationDone: Promise<void> | null = null;
+  private finishGeneration: (() => void) | null = null;
 
   constructor(private readonly deps: LlamaRnEngineDeps) {}
 
@@ -105,7 +108,7 @@ export class LlamaRnEngine implements NamuEngine {
       }
       this.context = context;
       this.artifactId = artifactId;
-      this.lastFormatted = null;
+      this.formatCache.clear();
       this.deps.setRuntimeReference(artifactId);
       // INF-001: record the requested configuration and what the runtime reported.
       this.deps.diagnostics.record('engine.config', {
@@ -146,8 +149,9 @@ export class LlamaRnEngine implements NamuEngine {
       content: m.role === 'user' ? neutralizeControlTokens(m.content) : m.content,
     }));
     const key = JSON.stringify(safe);
-    if (this.lastFormatted?.key === key) {
-      return this.lastFormatted;
+    const cached = this.formatCache.get(key);
+    if (cached) {
+      return cached;
     }
     const result = await context.getFormattedChat(safe, null, {
       jinja: true,
@@ -175,7 +179,10 @@ export class LlamaRnEngine implements NamuEngine {
       additionalStops: jinja.additional_stops ?? [],
       tokenCount,
     };
-    this.lastFormatted = formatted;
+    this.formatCache.set(key, formatted);
+    if (this.formatCache.size > FORMAT_CACHE_ENTRIES) {
+      this.formatCache.delete(this.formatCache.keys().next().value as string);
+    }
     return formatted;
   }
 
@@ -190,7 +197,16 @@ export class LlamaRnEngine implements NamuEngine {
       throw new InferenceFailure('MODEL_LOAD_FAILED', `generate-in-${this.engineState}`);
     }
     const p = this.deps.parameters;
-    const formatted = await this.format(request.messages);
+    // Registered before the first await: a cancel() arriving while the prompt
+    // is still being formatted is latched instead of being lost (INF-006).
+    this.beginRequest(request.id);
+    let formatted: Formatted;
+    try {
+      formatted = await this.format(request.messages);
+    } catch (error) {
+      this.endRequest();
+      throw error;
+    }
     return this.complete(context, request.id, formatted, onText, {
       n_predict: p.nPredict,
       temperature: p.temperature,
@@ -201,6 +217,22 @@ export class LlamaRnEngine implements NamuEngine {
     });
   }
 
+  private beginRequest(requestId: string): void {
+    this.engineState = 'generating';
+    this.activeRequestId = requestId;
+    this.cancelRequested = false;
+    this.generationDone = new Promise<void>(resolve => {
+      this.finishGeneration = resolve;
+    });
+  }
+
+  private endRequest(): void {
+    this.activeRequestId = null;
+    this.engineState = this.context ? 'ready' : 'unloaded';
+    this.finishGeneration?.();
+    this.finishGeneration = null;
+  }
+
   private async complete(
     context: LlamaContext,
     requestId: string,
@@ -208,13 +240,17 @@ export class LlamaRnEngine implements NamuEngine {
     onText: (event: TextEvent) => void,
     sampling: {n_predict: number; temperature: number; top_p: number; top_k: number; penalty_repeat: number; seed: number},
   ): Promise<GenerateResult> {
-    this.engineState = 'generating';
-    this.activeRequestId = requestId;
-    this.cancelRequested = false;
-    let finish!: () => void;
-    this.generationDone = new Promise<void>(resolve => {
-      finish = resolve;
-    });
+    if (this.activeRequestId !== requestId) {
+      this.beginRequest(requestId); // self-test path
+    }
+    const stops = [...RUNTIME_FIXTURE.stopMarkers, ...formatted.additionalStops];
+    // Everything the runtime may trim, plus every control token, is held back.
+    const markers = guardMarkers(stops);
+    if (this.cancelRequested) {
+      // Stop arrived before the native completion was registered.
+      this.endRequest();
+      return {requestId, text: '', reason: 'cancelled', promptTokens: formatted.tokenCount, outputTokens: 0};
+    }
 
     let raw = '';
     let emittedLength = 0;
@@ -224,14 +260,14 @@ export class LlamaRnEngine implements NamuEngine {
       if (leaked) {
         return;
       }
-      const hit = findControlToken(raw, emittedLength);
+      const hit = findControlToken(raw, emittedLength, markers);
       let limit: number;
       if (hit !== -1) {
         // INF-003: a control token must never become visible output.
         leaked = true;
         limit = hit;
       } else {
-        limit = final ? raw.length : safeEmitLength(raw);
+        limit = final ? safeEmitLength(raw, markers, 2) : safeEmitLength(raw, markers);
       }
       if (limit > emittedLength) {
         const delta = raw.slice(emittedLength, limit);
@@ -250,7 +286,7 @@ export class LlamaRnEngine implements NamuEngine {
           enable_thinking: false,
           reasoning_format: 'none',
           n_threads: this.deps.parameters.threads,
-          stop: [...RUNTIME_FIXTURE.stopMarkers, ...formatted.additionalStops],
+          stop: stops,
           ignore_eos: false,
           n_probs: 0,
           ...sampling,
@@ -265,10 +301,15 @@ export class LlamaRnEngine implements NamuEngine {
           emitSafePrefix(false);
         },
       );
-      const finalText = cutAtControlToken(typeof result.text === 'string' && result.text.length > 0 ? result.text : raw);
-      raw = finalText.length >= emittedLength ? finalText : raw;
-      emitSafePrefix(true);
-      const text = raw.slice(0, emittedLength);
+      // The runtime's final text is authoritative: it has the stop string
+      // trimmed. It may be SHORTER than what was streamed; the controller
+      // replaces the streamed text with this value at the terminal commit.
+      const runtimeText = typeof result.text === 'string' && result.text.length > 0 ? result.text : raw;
+      const text = finalVisibleText(runtimeText, markers);
+      if (text.length > emittedLength && text.startsWith(raw.slice(0, emittedLength))) {
+        onText({requestId, sequence: sequence++, delta: text.slice(emittedLength)});
+        emittedLength = text.length;
+      }
 
       if (result.tokens_evaluated !== formatted.tokenCount && result.tokens_cached === 0) {
         this.deps.diagnostics.record('prompt.count.mismatch', {
@@ -277,8 +318,10 @@ export class LlamaRnEngine implements NamuEngine {
         });
       }
       let reason: GenerateResult['reason'];
-      if (this.cancelRequested || result.interrupted) {
+      if (this.cancelRequested) {
         reason = 'cancelled';
+      } else if (result.interrupted) {
+        reason = 'interrupted'; // stopped by the runtime, not by a request from Namu
       } else if (result.stopped_eos || (result.stopped_word ?? '').length > 0 || leaked) {
         reason = 'eos';
       } else if (result.stopped_limit > 0 || result.context_full || result.truncated) {
@@ -300,13 +343,11 @@ export class LlamaRnEngine implements NamuEngine {
       };
     } catch (error) {
       if (this.cancelRequested) {
-        return {requestId, text: raw.slice(0, emittedLength), reason: 'cancelled'};
+        return {requestId, text: finalVisibleText(raw, markers), reason: 'cancelled'};
       }
       throw new InferenceFailure(looksLikeMemoryFailure(error) ? 'MEMORY_LOW' : 'ANSWER_INTERRUPTED', 'completion-failed');
     } finally {
-      this.activeRequestId = null;
-      this.engineState = this.context ? 'ready' : 'unloaded';
-      finish();
+      this.endRequest();
     }
   }
 
@@ -319,9 +360,9 @@ export class LlamaRnEngine implements NamuEngine {
     if (this.activeRequestId !== requestId || !this.context) {
       return;
     }
-    this.cancelRequested = true;
+    this.cancelRequested = true; // latched: honoured even if completion has not started yet
     this.engineState = 'stopping';
-    await this.context.stopCompletion();
+    await this.context.stopCompletion().catch(() => undefined);
     await this.generationDone;
   }
 
@@ -333,12 +374,17 @@ export class LlamaRnEngine implements NamuEngine {
     const context = this.context;
     this.context = null;
     this.artifactId = null;
-    this.lastFormatted = null;
-    if (context) {
-      await context.release();
+    this.formatCache.clear();
+    try {
+      if (context) {
+        await context.release();
+      }
+    } finally {
+      // Even if release throws, never report a half state: `ready` with no
+      // artifact would make the controller load a second multi-gigabyte context.
+      this.deps.setRuntimeReference(null);
+      this.engineState = 'unloaded';
     }
-    this.deps.setRuntimeReference(null);
-    this.engineState = 'unloaded';
   }
 
   /**
@@ -385,11 +431,6 @@ export class LlamaRnEngine implements NamuEngine {
     }
     return this.context;
   }
-}
-
-function cutAtControlToken(text: string): string {
-  const at = findControlToken(text, 0);
-  return at === -1 ? text : text.slice(0, at);
 }
 
 function looksLikeMemoryFailure(error: unknown): boolean {

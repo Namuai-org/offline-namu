@@ -165,8 +165,30 @@ export class ModelInstallController {
     if (!quiet) {
       return false;
     }
-    this.accept(await this.deps.transfer.restorePrevious());
+    this.accept(await this.deps.transfer.restorePrevious(false));
     return true;
+  }
+
+  /**
+   * DL-013 failed trial: the active artifact could not be loaded while a
+   * previous version is still retained. The new digest is marked locally bad
+   * and the previous pointer is restored. Nothing is reloaded automatically —
+   * the old weights load on the user's next explicit action (DL-011). With no
+   * previous version the repair UI is shown instead; there is no reload loop.
+   */
+  async handleActiveLoadFailure(artifactId: string): Promise<boolean> {
+    const {install} = this.snapshotValue;
+    if (install.active?.artifactId !== artifactId || !install.canRestorePrevious) {
+      return false;
+    }
+    try {
+      this.accept(await this.deps.transfer.restorePrevious(true));
+      this.deps.diagnostics.record('install.trialRestore', {accepted: true});
+      return true;
+    } catch {
+      this.deps.diagnostics.record('install.trialRestore', {accepted: false});
+      return false;
+    }
   }
 
   async repair(): Promise<void> {

@@ -54,7 +54,12 @@ export interface Spec extends TurboModule {
   setRuntimeReference(artifactId: string): void;
   noteSuccessfulForegroundSession(): Promise<void>;
 
-  restorePrevious(): Promise<string>;
+  /**
+   * DL-013. `markAbandonedBad = true` is the automatic failed-trial restore:
+   * the abandoned digest is added to the local known-bad list. A manual
+   * "Restore previous version" passes false. JSON: TransferSnapshot.
+   */
+  restorePrevious(markAbandonedBad: boolean): Promise<string>;
   /** Rehashes the active artifact (DL-014). JSON: TransferSnapshot. */
   repair(): Promise<string>;
   removeModel(): Promise<void>;

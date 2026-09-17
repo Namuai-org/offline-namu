@@ -66,7 +66,8 @@
     "ineligibleMetal": "This device cannot run Namu's AI engine.",
     "ineligibleKeep": "You can still read saved chats, change settings and open Help.",
     "needSpace": "Free up {{bytes}} more storage to continue.",
-    "descriptorInvalid": "This copy of Namu cannot verify its download information. Update the app and try again."
+    "descriptorInvalid": "This copy of Namu cannot verify its download information. Update the app and try again.",
+    "checkFailed": "Namu could not check this phone. Try again."
   },
   "progress": {
     "title": "Setting up Namu",
@@ -173,7 +174,8 @@
     "deleteStopFirst": "Namu is answering in this conversation. The answer will be stopped before deleting.",
     "inTitle": "Title",
     "inYou": "Your message",
-    "inNamu": "Namu's answer"
+    "inNamu": "Namu's answer",
+    "deleteDeferred": "Namu could not confirm that the answer stopped, so nothing was deleted. Close and reopen the app, then try again."
   },
   "export": {
     "warningTitle": "Export leaves Namu's protection",
@@ -238,7 +240,8 @@
     "removeBody": "Your chats stay on this phone, but Namu cannot write new answers until you download the offline AI again.",
     "removeConfirm": "Remove",
     "chatsKept": "Namu never deletes your chats to make room for the offline AI.",
-    "busy": "Namu could not confirm that the current answer stopped. Close and reopen the app, then try again."
+    "busy": "Namu could not confirm that the current answer stopped. Close and reopen the app, then try again.",
+    "actionFailed": "That did not work. Your chats and the current offline AI were not changed. Try again."
   },
   "privacy": {
     "title": "Privacy and data",

@@ -20,6 +20,8 @@ import {PROMPT_VERSION, buildSystemPrompt} from './systemPrompt';
 export const UI_PUBLISH_INTERVAL_MS = 50;
 export const CHECKPOINT_INTERVAL_MS = 1000;
 export const CHECKPOINT_BYTES = 1024;
+/** Longest time deletion/activation waits for the engine to go quiet. */
+export const QUIESCE_DEADLINE_MS = 20_000;
 const CONTEXT_PAGE = 30;
 const CONTEXT_MAX_PAGES = 10;
 
@@ -83,6 +85,8 @@ export interface ChatSessionDeps {
   /** ERR-001 durable marker around native loads. */
   loadMarker: {set(artifactSha256: string): Promise<void>; clear(): Promise<void>};
   diagnostics: {record(code: string, fields?: Record<string, number | string | boolean | null | undefined>): void};
+  /** DL-013 failed trial: the active artifact failed to load (not a memory failure). */
+  onActiveLoadFailed?: (artifactId: string) => Promise<unknown>;
   /** DL-013: called once per app session after the first successful answer. */
   onSuccessfulAnswer?: () => void;
   /** A11Y-001 / DS-004 hooks: fired once per generation. */
@@ -123,16 +127,22 @@ export class ChatSessionController {
   private idleTimer: unknown = null;
   private thermalTimer: unknown = null;
   private sessionSuccessReported = false;
+  // Independent block reasons; `state.blocked` shows the highest priority one
+  // so that a thermal event can never erase safe mode or a cancel timeout.
+  private cancelTimedOutFlag = false;
+  private safeMode: boolean;
+  private thermalBlocked = false;
 
   constructor(private readonly deps: ChatSessionDeps) {
     this.timers = deps.timers ?? {
       setTimeout: (fn, ms) => setTimeout(fn, ms),
       clearTimeout: handle => clearTimeout(handle as ReturnType<typeof setTimeout>),
     };
+    this.safeMode = deps.safeModeAtStart === true;
     this.state = {
       engine: deps.engine.state(),
       active: null,
-      blocked: deps.safeModeAtStart ? 'SAFE_MODE' : null,
+      blocked: this.safeMode ? 'SAFE_MODE' : null,
       lastError: null,
       unsaved: null,
     };
@@ -162,8 +172,12 @@ export class ChatSessionController {
     return this.run?.active.attemptId === attemptId ? this.run.text : null;
   }
 
+  private currentBlock(): BlockReason | null {
+    return this.cancelTimedOutFlag ? 'CANCEL_TIMEOUT' : this.safeMode ? 'SAFE_MODE' : this.thermalBlocked ? 'DEVICE_HOT' : null;
+  }
+
   private setState(patch: Partial<ChatSessionState>): void {
-    this.state = {...this.state, ...patch, engine: this.deps.engine.state()};
+    this.state = {...this.state, ...patch, blocked: this.currentBlock(), engine: this.deps.engine.state()};
     for (const listener of this.stateListeners) {
       listener(this.state);
     }
@@ -285,6 +299,9 @@ export class ChatSessionController {
       await this.ensureLoaded(artifact);
     } catch (error) {
       const code = error instanceof InferenceFailure ? error.code : 'MODEL_LOAD_FAILED';
+      if (code === 'MODEL_LOAD_FAILED') {
+        await this.deps.onActiveLoadFailed?.(artifact.artifactId).catch(() => undefined);
+      }
       this.setState({lastError: {code, conversationId: request.conversationId, attemptId: null}});
       settle({accepted: false, code});
       return;
@@ -414,11 +431,15 @@ export class ChatSessionController {
     let result: GenerateResult;
     try {
       await chat.markStreaming(attemptId, fit.promptTokens, this.deps.now());
-      if (run.stopCause) {
-        result = {requestId: run.active.requestId, text: '', reason: 'cancelled'};
-      } else {
+      if (!run.stopCause) {
         await engine.resetSession(); // INF-004 / T17
         this.setState({});
+      }
+      if (run.stopCause) {
+        // Stop arrived before decoding was handed to the engine (including
+        // while the session was being reset): never start it.
+        result = {requestId: run.active.requestId, text: '', reason: 'cancelled'};
+      } else {
         result = await engine.generate(
           {id: run.active.requestId, conversationId, messages: fit.messages},
           event => this.onText(run, event),
@@ -569,7 +590,11 @@ export class ChatSessionController {
     run.stopCause = cause;
     run.stopErrorCode = errorCode;
     if (run.active.phase === 'preparing') {
+      // The load cannot be interrupted, but the request is visible at once and
+      // honoured before anything is committed.
       run.cancelRequestedBeforeCommit = true;
+      run.active = {...run.active, phase: 'stopping'};
+      this.setState({active: run.active});
       return;
     }
     run.active = {...run.active, phase: 'stopping'};
@@ -585,8 +610,8 @@ export class ChatSessionController {
       if (!acknowledged && !run.finalized) {
         // Never free a running context; require the user to reopen the app.
         this.deps.diagnostics.record('engine.stop', {stopMs: CANCEL_ACK_TIMEOUT_MS, errorCode: 'CANCEL_TIMEOUT'});
+        this.cancelTimedOutFlag = true;
         this.setState({
-          blocked: 'CANCEL_TIMEOUT',
           lastError: {code: 'CANCEL_TIMEOUT', conversationId: run.active.conversationId, attemptId: run.active.attemptId},
         });
       }
@@ -729,9 +754,8 @@ export class ChatSessionController {
         this.timers.clearTimeout(this.thermalTimer);
         this.thermalTimer = null;
       }
-      if (this.state.blocked !== 'CANCEL_TIMEOUT') {
-        this.setState({blocked: 'DEVICE_HOT'});
-      }
+      this.thermalBlocked = true;
+      this.setState({});
       const run = this.run;
       if (run) {
         void this.checkpoint(run);
@@ -741,20 +765,20 @@ export class ChatSessionController {
       }
       return;
     }
-    if (this.state.blocked === 'DEVICE_HOT' && this.thermalTimer === null) {
+    if (this.thermalBlocked && this.thermalTimer === null) {
       this.thermalTimer = this.timers.setTimeout(() => {
         this.thermalTimer = null;
-        if (this.state.blocked === 'DEVICE_HOT') {
-          this.setState({blocked: null});
-        }
+        this.thermalBlocked = false;
+        this.setState({});
       }, THERMAL_RECOVERY_MS);
     }
   }
 
   /** ERR-001: the user explicitly chose to try loading again after a crash. */
   leaveSafeMode(): void {
-    if (this.state.blocked === 'SAFE_MODE') {
-      this.setState({blocked: null});
+    if (this.safeMode) {
+      this.safeMode = false;
+      this.setState({});
     }
   }
 
@@ -782,15 +806,20 @@ export class ChatSessionController {
     // If the stop is never acknowledged the lock is never released; give up
     // waiting as soon as CANCEL_TIMEOUT is declared instead of hanging.
     let unsubscribe: () => void = () => undefined;
+    let deadline: unknown = null;
     const timedOut = new Promise<'timeout'>(resolve => {
       unsubscribe = this.subscribe(state => {
         if (state.blocked === 'CANCEL_TIMEOUT') {
           resolve('timeout');
         }
       });
+      // A model load in progress cannot be interrupted; do not make deletion or
+      // activation wait for it indefinitely.
+      deadline = this.timers.setTimeout(() => resolve('timeout'), QUIESCE_DEADLINE_MS);
     });
     const outcome = await Promise.race([unloaded, timedOut]);
     unsubscribe();
+    this.timers.clearTimeout(deadline);
     this.setState({});
     return outcome === 'done' && !this.cancelTimedOut() && this.deps.engine.loadedArtifactId() === null;
   }

@@ -77,10 +77,16 @@ export async function applyMigrations(
 
 /** Post-migration validation before the backup may be scheduled for removal. */
 export async function validateDatabase(driver: SqlDriver, version: number): Promise<void> {
-  const integrity = await driver.execute('PRAGMA quick_check');
-  const ok = integrity.rows.length === 1 && Object.values(integrity.rows[0]!)[0] === 'ok';
-  const foreignKeys = await driver.execute('PRAGMA foreign_key_check');
-  if (!ok || foreignKeys.rows.length > 0) {
+  let ok = false;
+  let foreignKeyViolations = 1;
+  try {
+    const integrity = await driver.execute('PRAGMA quick_check');
+    ok = integrity.rows.length === 1 && Object.values(integrity.rows[0]!)[0] === 'ok';
+    foreignKeyViolations = (await driver.execute('PRAGMA foreign_key_check')).rows.length;
+  } catch (error) {
+    throw new MigrationError('validation-failed', version, error);
+  }
+  if (!ok || foreignKeyViolations > 0) {
     throw new MigrationError('validation-failed', version);
   }
 }

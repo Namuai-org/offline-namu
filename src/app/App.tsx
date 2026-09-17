@@ -71,7 +71,7 @@ export default function App({adapters}: {adapters?: PlatformAdapters}): React.JS
 
   // SEC-006: after "Delete all Namu data" rebuild everything and return to S01.
   const restart = useCallback(() => {
-    servicesRef.current?.install.stop();
+    servicesRef.current?.dispose();
     servicesRef.current = null;
     useChatViewStore.getState().open(null);
     setGeneration(value => value + 1);

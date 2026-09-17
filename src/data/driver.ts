@@ -28,8 +28,10 @@ export interface SqlDriverFactory {
   /** Opens an existing database read-only (DATABASE_RECOVERY mode). */
   openReadOnly(directory: string, name: string): Promise<SqlDriver>;
   exists(directory: string, name: string): Promise<boolean>;
-  /** Deletes `name` and its -wal/-shm siblings. */
+  /**
+   * Deletes `name` and its -wal/-shm siblings. Only ever called for the
+   * migration BACKUP file and the diagnostics file — never for namu.sqlite
+   * (DB-006: the user's database is never deleted or recreated automatically).
+   */
   remove(directory: string, name: string): Promise<void>;
-  /** Atomically replaces `target` with `source` (both closed). */
-  replace(directory: string, source: string, target: string): Promise<void>;
 }

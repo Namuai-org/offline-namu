@@ -60,8 +60,8 @@ export class NativeTransferService implements TransferService {
   noteSuccessfulForegroundSession(): Promise<void> {
     return NativeNamuTransfer.noteSuccessfulForegroundSession();
   }
-  async restorePrevious(): Promise<TransferSnapshot> {
-    return parseSnapshot(await NativeNamuTransfer.restorePrevious());
+  async restorePrevious(markAbandonedBad: boolean): Promise<TransferSnapshot> {
+    return parseSnapshot(await NativeNamuTransfer.restorePrevious(markAbandonedBad));
   }
   async repair(): Promise<TransferSnapshot> {
     return parseSnapshot(await NativeNamuTransfer.repair());

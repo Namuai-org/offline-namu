@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Namu</string>
+    <!-- Transfer notification (shown with no JS runtime, so these live in native resources). -->
+    <string name="namu_transfer_channel_name">Offline AI download</string>
+    <string name="namu_transfer_channel_description">Progress of the one-time offline AI download</string>
+    <string name="namu_transfer_title">Downloading offline AI</string>
+    <string name="namu_transfer_verifying">Checking the download</string>
+    <string name="namu_transfer_progress">%1$d%%</string>
+    <string name="namu_export_share_title">Export</string>
+</resources>

@@ -113,8 +113,8 @@ export class FakeTransferService implements TransferService {
   async noteSuccessfulForegroundSession() {
     this.calls.push('sessionSuccess');
   }
-  async restorePrevious() {
-    this.calls.push('restorePrevious');
+  async restorePrevious(markAbandonedBad: boolean) {
+    this.calls.push(`restorePrevious:${markAbandonedBad}`);
     return this.snapshotValue;
   }
   async repair() {
@@ -227,6 +227,9 @@ export class FakeExportService implements ExportService {
   }
   async deleteExport(id: string) {
     this.calls.push(`delete:${id}`);
+  }
+  async cleanupAfterShare(id: string, handedOver: boolean) {
+    this.calls.push(`cleanup:${id}:${handedOver}`);
   }
   async sweep() {
     this.calls.push('sweep');

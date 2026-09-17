@@ -67,21 +67,4 @@ export class OpSqliteFactory implements SqlDriverFactory {
     const db = open({name, location: directory});
     db.delete();
   }
-
-  /**
-   * File replacement without a filesystem API: the target is deleted, then the
-   * source database is copied into place with `VACUUM INTO`, which writes a
-   * complete, consistent database file (DB-006).
-   */
-  async replace(directory: string, source: string, target: string): Promise<void> {
-    await this.remove(directory, target);
-    const db = open({name: source, location: directory, failOnCreate: true});
-    try {
-      const separator = directory.endsWith('/') ? '' : '/';
-      await db.execute('VACUUM INTO ?', [`${directory}${separator}${target}`]);
-    } finally {
-      await db.closeAsync();
-    }
-    await this.remove(directory, source);
-  }
 }

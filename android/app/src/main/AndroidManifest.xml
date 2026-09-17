@@ -1,0 +1,72 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- SEC-003: network is used only for explicit model metadata/download operations. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- API 29–33: WorkManager foreground worker (dataSync). -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- API 33+: transfer progress notification. The transfer itself never depends on it. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- API 34+: user-initiated data transfer jobs (D06). -->
+    <uses-permission android:name="android.permission.RUN_USER_INITIATED_JOBS" />
+
+    <!--
+      SEC-001: nothing Namu stores may enter cloud backup or device-to-device transfer.
+      allowBackup=false disables Auto Backup; on Android 12+ device transfer ignores that
+      flag, so BOTH rule generations additionally exclude every domain:
+      fullBackupContent (API <= 30) and dataExtractionRules (API 31+).
+    -->
+    <application
+      android:name=".MainApplication"
+      android:label="@string/app_name"
+      android:icon="@mipmap/ic_launcher"
+      android:roundIcon="@mipmap/ic_launcher_round"
+      android:allowBackup="false"
+      android:fullBackupContent="@xml/namu_backup_rules"
+      android:dataExtractionRules="@xml/namu_data_extraction_rules"
+      android:networkSecurityConfig="@xml/network_security_config"
+      android:theme="@style/AppTheme"
+      android:usesCleartextTraffic="${usesCleartextTraffic}"
+      android:supportsRtl="true"
+      tools:targetApi="s">
+      <!-- DEV-006: no screenOrientation lock; portrait and landscape are both supported. -->
+      <activity
+        android:name=".MainActivity"
+        android:label="@string/app_name"
+        android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize|uiMode"
+        android:launchMode="singleTask"
+        android:windowSoftInputMode="adjustResize"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+      </activity>
+
+      <!-- API 34+: user-initiated data transfer job (contract §6.2). -->
+      <service
+        android:name=".transfer.UidtTransferJobService"
+        android:enabled="@bool/namu_uidt_enabled"
+        android:permission="android.permission.BIND_JOB_SERVICE"
+        android:exported="false" />
+
+      <!-- API 29–33: WorkManager's foreground service must declare the dataSync type (API 34 rule). -->
+      <service
+        android:name="androidx.work.impl.foreground.SystemForegroundService"
+        android:foregroundServiceType="dataSync"
+        tools:node="merge" />
+
+      <!-- SEC-004/005: exports are shared from one cache sub-directory only. -->
+      <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.exports"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+          android:name="android.support.FILE_PROVIDER_PATHS"
+          android:resource="@xml/namu_export_paths" />
+      </provider>
+    </application>
+</manifest>

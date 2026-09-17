@@ -102,9 +102,5 @@ export function truncateGraphemes(input: string, max: number): string {
 
 /** Unicode code points, the unit of the 12,000 input limit (CTX-002). */
 export function codePointLength(input: string): number {
-  let count = 0;
-  for (const _ of input) {
-    count++;
-  }
-  return count;
+  return Array.from(input).length;
 }

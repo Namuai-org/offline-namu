@@ -40,8 +40,8 @@ export async function openChatDatabase(options: OpenOptions): Promise<OpenResult
   let driver;
   try {
     driver = await factory.open(directory, CHAT_DB_NAME);
-  } catch (error) {
-    return recover(options, `open-failed`);
+  } catch {
+    return recover(options, 'open-failed');
   }
 
   let plan;

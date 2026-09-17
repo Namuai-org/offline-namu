@@ -18,6 +18,11 @@ export type MemoryEvent = {
   level: string;
 };
 
+export type SendShortcutEvent = {
+  /** 'hardware-keyboard' */
+  source: string;
+};
+
 export interface Spec extends TurboModule {
   getConstants(): {
     appVersion: string;
@@ -56,6 +61,11 @@ export interface Spec extends TurboModule {
 
   readonly onThermalStateChanged: CodegenTypes.EventEmitter<ThermalEvent>;
   readonly onMemoryPressure: CodegenTypes.EventEmitter<MemoryEvent>;
+  /**
+   * A11Y-002: hardware Ctrl+Enter (Android) / Cmd+Enter (iOS). Plain Return
+   * always inserts a newline and never sends.
+   */
+  readonly onSendShortcut: CodegenTypes.EventEmitter<SendShortcutEvent>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('NamuPlatform');

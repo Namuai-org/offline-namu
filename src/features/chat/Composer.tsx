@@ -1,0 +1,206 @@
+import React, {useEffect, useRef, useState} from 'react';
+import {AppState, TextInput, View} from 'react-native';
+import {useTranslation} from 'react-i18next';
+import {useServices} from '../../app/ServicesContext';
+import {DRAFT_MAX_CODE_POINTS, NEW_CHAT_DRAFT_KEY} from '../../data/repositories/DraftRepository';
+import {codePointLength} from '../../domain/text/graphemes';
+import {NamuButton} from '../../design/components/NamuButton';
+import {NamuText} from '../../design/components/NamuText';
+import {useNamuTheme} from '../../design/theme';
+import {fonts, radii, sizes, spacing, typeScale} from '../../design/tokens';
+
+const DRAFT_SAVE_DELAY_MS = 300;
+const MAX_LINES = 6;
+const COUNTER_FROM = DRAFT_MAX_CODE_POINTS * 0.9;
+
+export interface ComposerHandle {
+  insert(text: string): void;
+}
+
+/**
+ * S04 composer. Grows from one to six lines, then scrolls. Return inserts a
+ * newline; sending is an explicit button (or hardware Ctrl/Cmd+Enter).
+ * Drafts are saved 300 ms after a change and on lifecycle transitions
+ * (DB-003). A draft typed during generation is kept but cannot be submitted
+ * until the active generation ends.
+ */
+export const Composer = React.forwardRef<
+  ComposerHandle,
+  {
+    conversationId: string | null;
+    mode: 'idle' | 'preparing' | 'answering' | 'stopping';
+    /** Blocked by device/model state: text can be typed but not sent. */
+    blocked: boolean;
+    readOnly: boolean;
+    onSend: (text: string) => Promise<boolean>;
+    onStop: () => void;
+  }
+>(function Composer({conversationId, mode, blocked, readOnly, onSend, onStop}, ref) {
+  const {t} = useTranslation();
+  const {colors} = useNamuTheme();
+  const services = useServices();
+  const draftKey = conversationId ?? NEW_CHAT_DRAFT_KEY;
+  const [text, setText] = useState('');
+  const [focused, setFocused] = useState(false);
+  const textRef = useRef('');
+  const keyRef = useRef(draftKey);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sending = useRef(false);
+
+  const persist = (key: string, value: string) => {
+    if (services.drafts && codePointLength(value) <= DRAFT_MAX_CODE_POINTS) {
+      void services.drafts.save(key, value, Date.now()).catch(() => undefined);
+    }
+  };
+
+  // Load the draft for this conversation; flush the previous one first.
+  useEffect(() => {
+    let cancelled = false;
+    keyRef.current = draftKey;
+    void services.drafts
+      ?.get(draftKey)
+      .then(saved => {
+        if (!cancelled) {
+          textRef.current = saved;
+          setText(saved);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+      if (saveTimer.current) {
+        clearTimeout(saveTimer.current);
+        saveTimer.current = null;
+      }
+      persist(draftKey, textRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftKey]);
+
+  // Lifecycle transitions save immediately (DB-003).
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      if (state !== 'active') {
+        persist(keyRef.current, textRef.current);
+      }
+    });
+    return () => subscription.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const change = (value: string) => {
+    textRef.current = value;
+    setText(value);
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+    }
+    saveTimer.current = setTimeout(() => persist(keyRef.current, value), DRAFT_SAVE_DELAY_MS);
+  };
+
+  React.useImperativeHandle(ref, () => ({
+    // Starter prompts are inserted as editable text; nothing is sent (S04).
+    insert: (value: string) => change(textRef.current.length > 0 ? `${textRef.current}\n${value}` : value),
+  }));
+
+  const length = codePointLength(text);
+  const tooLong = length > DRAFT_MAX_CODE_POINTS;
+  const empty = text.trim().length === 0;
+  const generating = mode !== 'idle';
+  // Send is disabled only when empty, invalid, blocked or stopping (S04).
+  const sendDisabled = empty || tooLong || blocked || readOnly || generating;
+
+  const submit = async () => {
+    if (sendDisabled || sending.current) {
+      return;
+    }
+    sending.current = true;
+    const value = textRef.current;
+    try {
+      const accepted = await onSend(value);
+      // Only a durable commit clears the composer (CHAT-001).
+      if (accepted && textRef.current === value) {
+        if (saveTimer.current) {
+          clearTimeout(saveTimer.current);
+          saveTimer.current = null;
+        }
+        textRef.current = '';
+        setText('');
+      }
+    } finally {
+      sending.current = false;
+    }
+  };
+
+  const submitRef = useRef(submit);
+  submitRef.current = submit;
+  useEffect(() => services.device.onSendShortcut(() => void submitRef.current()), [services]);
+
+  const lineHeight = typeScale.body.lineHeight;
+  return (
+    <View style={{gap: spacing.xs, paddingVertical: spacing.sm}}>
+      {tooLong ? (
+        <NamuText variant="label" tone="error" accessibilityLiveRegion="polite">
+          {t('chat.tooLongInline')}
+        </NamuText>
+      ) : null}
+      <View style={{flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm}}>
+        <View
+          style={{
+            flex: 1,
+            borderRadius: radii.surface,
+            borderWidth: focused || tooLong ? 2 : 1,
+            borderColor: tooLong ? colors.error : focused ? colors.focus : colors.outline,
+            backgroundColor: colors.surface,
+            paddingHorizontal: spacing.lg,
+            minHeight: sizes.touchTarget,
+            justifyContent: 'center',
+          }}>
+          <TextInput
+            testID="composer-input"
+            value={text}
+            onChangeText={change}
+            editable={!readOnly}
+            multiline
+            // Mobile Return inserts a newline; it never sends (A11Y-002).
+            submitBehavior="newline"
+            scrollEnabled
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={t('chat.composerPlaceholder')}
+            placeholderTextColor={colors.textSecondary}
+            accessibilityLabel={t('chat.composerLabel')}
+            selectionColor={colors.action}
+            cursorColor={colors.action}
+            style={{
+              fontFamily: fonts.regular,
+              fontSize: typeScale.body.fontSize,
+              lineHeight,
+              color: colors.textPrimary,
+              paddingVertical: spacing.md,
+              // One to six lines, then the field scrolls. Scales with text size.
+              maxHeight: lineHeight * MAX_LINES + spacing.md * 2,
+              textAlignVertical: 'center',
+            }}
+          />
+        </View>
+        {generating ? (
+          <NamuButton
+            testID="composer-stop"
+            label={mode === 'stopping' ? t('chat.stopping') : t('chat.stop')}
+            icon="stop_circle"
+            variant="secondary"
+            disabled={mode === 'stopping'}
+            onPress={onStop}
+          />
+        ) : (
+          <NamuButton testID="composer-send" label={t('chat.send')} icon="send" disabled={sendDisabled} onPress={submit} />
+        )}
+      </View>
+      {length >= COUNTER_FROM ? (
+        <NamuText variant="label" tone={tooLong ? 'error' : 'secondary'} align="right">
+          {t('chat.counter', {count: length, max: DRAFT_MAX_CODE_POINTS})}
+        </NamuText>
+      ) : null}
+    </View>
+  );
+});

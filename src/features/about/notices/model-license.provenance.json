@@ -1,0 +1,21 @@
+{
+  "notice_id": "tiny-aya-cc-by-nc-4.0-v1",
+  "retrieved_at": "2026-09-17T17:06:44.973Z",
+  "sources": [
+    {
+      "title": "CC-BY-NC 4.0 License with Acceptable Use Addendum (Cohere Labs)",
+      "url": "https://cohere.com/cohere-labs-cc-by-nc-license",
+      "sha256": "748a32c07527fcba1585de28d0bb7e8987dd69db01b6188f5eff1e467d4a5ff7"
+    },
+    {
+      "title": "Creative Commons Attribution-NonCommercial 4.0 International — legal code",
+      "url": "https://creativecommons.org/licenses/by-nc/4.0/legalcode.txt",
+      "sha256": "db2e35513dbadcdc67f5819a3bfee2777786538dd3531620cd5fbd4b6ed6e538"
+    }
+  ],
+  "acceptable_use_policy_url": "https://docs.cohere.com/docs/cohere-labs-acceptable-use-policy",
+  "review": {
+    "status": "pending-legal-review",
+    "reviewer": null
+  }
+}

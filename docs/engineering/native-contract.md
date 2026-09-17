@@ -68,6 +68,12 @@ values are produced by the release runbook and injected at build time.
 * `prepareChatDataDirectory()`: Android `noBackupFilesDir/namu-data`; iOS
   `Library/Application Support/NamuData` with `isExcludedFromBackup = true`
   and `FileProtectionType.complete` on the directory (SEC-001).
+* Send shortcut (A11Y-002): emit `onSendShortcut {source: "hardware-keyboard"}`
+  for Ctrl+Enter on Android (`Activity.dispatchKeyEvent`, `KEYCODE_ENTER` /
+  `KEYCODE_NUMPAD_ENTER` with `isCtrlPressed`, on `ACTION_UP`, consuming the
+  event) and Cmd+Return on iOS (`UIKeyCommand` on the root view controller or
+  via `pressesBegan`). A plain Return is never intercepted: it inserts a
+  newline in the composer.
 * App-switcher privacy (SEC-007) is native-only: Android `FLAG_SECURE` on the
   main activity; iOS an opaque cover view between `willResignActive` and
   `didBecomeActive`.

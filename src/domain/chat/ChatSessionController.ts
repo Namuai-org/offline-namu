@@ -172,8 +172,12 @@ export class ChatSessionController {
   // ------------------------------------------------------------------- send
 
   /** CHAT-001. Resolves once the turn is durably committed (or refused). */
-  send(conversationId: string | null, rawText: string): Promise<SendOutcome> {
-    return this.start({kind: 'send', conversationId, text: rawText});
+  send(
+    conversationId: string | null,
+    rawText: string,
+    options: {newConversationLanguage?: ResponseLanguage} = {},
+  ): Promise<SendOutcome> {
+    return this.start({kind: 'send', conversationId, text: rawText, language: options.newConversationLanguage});
   }
 
   /** CHAT-004: new attempt for the latest turn's same user message. */
@@ -183,7 +187,7 @@ export class ChatSessionController {
 
   private start(
     request:
-      | {kind: 'send'; conversationId: string | null; text: string}
+      | {kind: 'send'; conversationId: string | null; text: string; language?: ResponseLanguage}
       | {kind: 'retry'; conversationId: string; turnId: string},
   ): Promise<SendOutcome> {
     if (this.run) {
@@ -269,7 +273,7 @@ export class ChatSessionController {
   private async pipeline(
     run: RunContext,
     request:
-      | {kind: 'send'; conversationId: string | null; text: string}
+      | {kind: 'send'; conversationId: string | null; text: string; language?: ResponseLanguage}
       | {kind: 'retry'; conversationId: string; turnId: string},
     artifact: InstalledArtifact,
     settle: (outcome: SendOutcome) => void,
@@ -307,7 +311,7 @@ export class ChatSessionController {
     } else {
       userText = request.text;
       const conversation = request.conversationId ? await conversations.get(request.conversationId) : null;
-      language = conversation?.responseLanguage ?? this.deps.defaultResponseLanguage();
+      language = conversation?.responseLanguage ?? request.language ?? this.deps.defaultResponseLanguage();
       beforeOrdinal = Number.MAX_SAFE_INTEGER;
     }
 
@@ -377,7 +381,7 @@ export class ChatSessionController {
         const sent = await chat.send({
           conversationId: request.conversationId,
           userText,
-          defaultResponseLanguage: this.deps.defaultResponseLanguage(),
+          defaultResponseLanguage: language,
           generation,
           ids: {
             conversationId: this.deps.newId(),

@@ -153,7 +153,7 @@ function LabeledAction({icon, label, onPress, testID}: AssistantAction) {
         paddingHorizontal: spacing.md,
         opacity: pressed ? 0.6 : 1,
       })}>
-      <NamuIcon name={icon} size={18} color={colors.action} />
+      <NamuIcon name={icon} size={18} color={colors.link} />
       <NamuText variant="label" weight="medium" tone="action">
         {label}
       </NamuText>

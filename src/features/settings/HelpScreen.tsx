@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {Linking, Pressable, View} from 'react-native';
+import {useHeaderHeight} from '@react-navigation/elements';
 import {useTranslation} from 'react-i18next';
 import {BUILD_FLAGS} from '../../app/buildFlags';
 import {useServices} from '../../app/ServicesContext';
@@ -23,6 +24,7 @@ const TOPICS = ['download', 'storage', 'slow', 'heat', 'missing', 'export', 'uni
  */
 export function HelpScreen(): React.JSX.Element {
   const {t} = useTranslation();
+  const headerHeight = useHeaderHeight();
   const {colors} = useNamuTheme();
   const services = useServices();
   const lastError = useChatSessionStore(s => s.session.lastError?.code ?? null);
@@ -45,10 +47,7 @@ export function HelpScreen(): React.JSX.Element {
   };
 
   return (
-    <Screen testID="help-screen">
-      <NamuText variant="title" accessibilityRole="header">
-        {t('help.title')}
-      </NamuText>
+    <Screen testID="help-screen" topInset={headerHeight}>
       <SectionHeader title={t('help.topicsTitle')} />
       {TOPICS.map(topic => {
         const open = expanded === topic;

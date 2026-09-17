@@ -3,9 +3,10 @@ import {DarkTheme, DefaultTheme, NavigationContainer, type Theme} from '@react-n
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useTranslation} from 'react-i18next';
-import {NamuIcon, type IconName} from '../design/icons/NamuIcon';
 import {useNamuTheme} from '../design/theme';
-import {fonts, motion, typeScale} from '../design/tokens';
+import {Platform} from 'react-native';
+import {fonts, motion} from '../design/tokens';
+import {FloatingTabBar} from './FloatingTabBar';
 import {AboutAiScreen} from '../features/about/AboutAiScreen';
 import {LegalTextScreen} from '../features/about/LegalTextScreen';
 import {ChatScreen} from '../features/chat/ChatScreen';
@@ -22,28 +23,11 @@ import {useAppStore} from './stores';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tabs = createBottomTabNavigator<TabParamList>();
 
-const TAB_ICONS: Record<keyof TabParamList, IconName> = {
-  Chat: 'chat_bubble',
-  Conversations: 'forum',
-  Settings: 'settings',
-};
-
-/** UX-001: three bottom tabs — Chat, Conversations, Settings. */
+/** UX-001: three bottom tabs — Chat, Conversations, Settings — in a floating glass bar. */
 function TabNavigator(): React.JSX.Element {
   const {t} = useTranslation();
-  const {colors} = useNamuTheme();
   return (
-    <Tabs.Navigator
-      screenOptions={({route}) => ({
-        headerShown: false,
-        tabBarActiveTintColor: colors.action,
-        tabBarInactiveTintColor: colors.textSecondary,
-        tabBarStyle: {backgroundColor: colors.surface, borderTopColor: colors.surfaceAlt},
-        tabBarLabelStyle: {fontFamily: fonts.medium, fontSize: 12},
-        tabBarAllowFontScaling: true,
-        tabBarHideOnKeyboard: true,
-        tabBarIcon: ({color}) => <NamuIcon name={TAB_ICONS[route.name]} color={color} />,
-      })}>
+    <Tabs.Navigator tabBar={props => <FloatingTabBar {...props} />} screenOptions={{headerShown: false}}>
       <Tabs.Screen name="Chat" component={ChatScreen} options={{title: t('tabs.chat'), tabBarButtonTestID: 'tab-chat'}} />
       <Tabs.Screen name="Conversations" component={ConversationsScreen} options={{title: t('tabs.conversations'), tabBarButtonTestID: 'tab-conversations'}} />
       <Tabs.Screen name="Settings" component={SettingsScreen} options={{title: t('tabs.settings'), tabBarButtonTestID: 'tab-settings'}} />
@@ -62,7 +46,7 @@ export function Navigation({reduceMotion}: {reduceMotion: boolean}): React.JSX.E
       ...base,
       colors: {
         ...base.colors,
-        primary: theme.colors.action,
+        primary: theme.colors.link,
         background: theme.colors.background,
         card: theme.colors.surface,
         text: theme.colors.textPrimary,
@@ -77,9 +61,14 @@ export function Navigation({reduceMotion}: {reduceMotion: boolean}): React.JSX.E
       <Stack.Navigator
         initialRouteName={onboarded ? 'Tabs' : 'Onboarding'}
         screenOptions={{
-          headerStyle: {backgroundColor: theme.colors.background},
+          // Glass frame: content scrolls under a translucent, blurred header with
+          // a centred DM Sans title. Android has no system blur: near-opaque tint.
+          headerTransparent: true,
+          headerBlurEffect: theme.dark ? 'systemThinMaterialDark' : 'systemThinMaterialLight',
+          headerStyle: {backgroundColor: Platform.OS === 'ios' ? 'transparent' : theme.colors.glassFallback},
           headerTintColor: theme.colors.textPrimary,
-          headerTitleStyle: {fontFamily: fonts.semibold, fontSize: typeScale.body.fontSize},
+          headerTitleAlign: 'center',
+          headerTitleStyle: {fontFamily: fonts.semibold, fontSize: 18},
           headerShadowVisible: false,
           headerBackButtonDisplayMode: 'minimal',
           contentStyle: {backgroundColor: theme.colors.background},

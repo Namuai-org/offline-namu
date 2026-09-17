@@ -54,4 +54,23 @@ findings; until the project owner approves one, the PRD text stands.
 
 ## Approved
 
-None.
+### PA-005 — Namu brand palette and glass frame replace the section 14 token table — **APPROVED**
+
+* Approved by: project owner, in-session instruction of 2026-09-17 ("brand the
+  UI in Namu's brand, DM Sans, Apple-style glass frame, centre the titles,
+  remove subtitles").
+* Affects: PRD section 14 colour table, DS-002 radii, S01/S02 copy.
+* Change: token revision `namu-brand-1` in `src/design/tokens.ts` — Harmattan
+  `#F7F0E3`, Ink `#1C1410`, Sahel `#E8935A` (precision accent), Dry Clay, Kola —
+  per `namu-brand-board.pdf`. DM Sans stays the only UI typeface (the board's
+  Playfair Display is display-only and is not used in the app). Controls are
+  pills; surfaces are glass: a native iOS system material (`UIGlassEffect` on
+  iOS 26+, thin-material blur on iOS 17–25) under a warm tint, with a
+  near-opaque token fallback on Android and wherever Reduce Transparency is on.
+  Titles are centred; the S01 tagline and the S02 explanatory subtitle were
+  removed (the download need is still stated on the introduction page and in
+  the no-connection notice, T01).
+* Unchanged: DS-004 still gates every token pair (`npm run check:contrast`,
+  text 4.5:1, controls/focus 3:1); DS-005 state rules; PRD-006 attribution.
+* Open: visual check of the Android fallback on a device; Hausa reviewers'
+  opinion on DM Sans fallback glyphs (PA-003).

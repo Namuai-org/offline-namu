@@ -19,6 +19,7 @@ import type {ProductErrorCode} from '../../domain/inference/failures';
 import {ActionSheet} from '../../design/components/ActionSheet';
 import {AssistantMessage, UserMessage, type AssistantAction} from '../../design/components/ChatMessage';
 import {EmptyState} from '../../design/components/EmptyState';
+import {GlassHeader} from '../../design/components/GlassHeader';
 import {NamuButton} from '../../design/components/NamuButton';
 import {NamuDialog} from '../../design/components/NamuDialog';
 import {NamuIconButton} from '../../design/components/NamuIconButton';
@@ -26,6 +27,7 @@ import {NamuText} from '../../design/components/NamuText';
 import {StatusNotice} from '../../design/components/StatusNotice';
 import {NamuIcon} from '../../design/icons/NamuIcon';
 import {safeLinkHost} from '../../design/markdown/parseMarkdown';
+import {useKeyboardVisible, useTabBarSpace, useTopBarSpace} from '../../design/layout';
 import {useNamuTheme} from '../../design/theme';
 import {sizes, spacing} from '../../design/tokens';
 import {useErrorCopy} from '../shared/hooks';
@@ -67,6 +69,9 @@ export function ChatScreen(): React.JSX.Element {
   const composerRef = useRef<ComposerHandle>(null);
   const loadToken = useRef(0);
   const readOnly = databaseMode === 'recovery';
+  const topSpace = useTopBarSpace();
+  const tabSpace = useTabBarSpace();
+  const keyboardVisible = useKeyboardVisible();
 
   // ------------------------------------------------------------------ loading
 
@@ -368,31 +373,19 @@ export function ChatScreen(): React.JSX.Element {
   const modelBlocked = install.state !== 'installed' || session.blocked !== null;
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={{flex: 1, backgroundColor: colors.background}} testID="chat-screen">
+    <SafeAreaView edges={['left', 'right']} style={{flex: 1, backgroundColor: colors.background}} testID="chat-screen">
       <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <View style={{flex: 1, width: '100%', maxWidth: sizes.maxContentWidth, alignSelf: 'center', paddingHorizontal: sizes.phonePadding}}>
-          {/* Header: Namu, quiet "On this device", answer language, new chat */}
-          <View style={{flexDirection: 'row', alignItems: 'center', minHeight: 56, gap: spacing.sm}}>
-            <View style={{flex: 1}}>
-              <NamuText variant="title" accessibilityRole="header" numberOfLines={1}>
-                {t('chat.title')}
-              </NamuText>
-              <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.xs}}>
-                <NamuIcon name="smartphone" size={16} color={colors.textSecondary} />
-                <NamuText variant="label" tone="secondary">
-                  {t('chat.onDevice')}
-                </NamuText>
-              </View>
-            </View>
-            <NamuIconButton
-              icon="language"
-              testID="chat-language"
-              label={`${t('responseLanguage.label')}: ${t(`responseLanguage.${language}`)}`}
-              onPress={() => setLanguageMenu(true)}
-            />
-            <NamuIconButton icon="edit_square" label={t('chat.newChat')} onPress={() => open(null)} testID="chat-new" />
-          </View>
-
+        <View
+          style={{
+            flex: 1,
+            width: '100%',
+            maxWidth: sizes.maxContentWidth,
+            alignSelf: 'center',
+            paddingHorizontal: sizes.phonePadding,
+            // The composer sits above the floating tab bar; the bar hides with the keyboard.
+            paddingBottom: keyboardVisible ? spacing.xs : tabSpace,
+          }}>
+          <View style={{height: topSpace}} />
           <ReturnToAnswerBanner currentConversationId={conversationId} />
           {readOnly ? (
             <StatusNotice
@@ -433,9 +426,12 @@ export function ChatScreen(): React.JSX.Element {
               </EmptyState>
             </View>
           ) : (
-            <View style={{flex: 1}}>
+            <View style={{flex: 1, marginTop: -topSpace}}>
               <FlatList
                 ref={listRef}
+                // Inverted list: paddingBottom is the visual top, under the glass header.
+                contentContainerStyle={{paddingBottom: topSpace}}
+                scrollIndicatorInsets={{bottom: topSpace}}
                 testID="chat-list"
                 data={turns}
                 inverted
@@ -512,6 +508,26 @@ export function ChatScreen(): React.JSX.Element {
           />
         </View>
       </KeyboardAvoidingView>
+      <GlassHeader
+        title={t('chat.title')}
+        badge={
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.xs}}>
+            <NamuIcon name="smartphone" size={13} color={colors.textSecondary} />
+            <NamuText variant="label" tone="secondary" style={{fontSize: 12, lineHeight: 14}}>
+              {t('chat.onDevice')}
+            </NamuText>
+          </View>
+        }
+        start={
+          <NamuIconButton
+            icon="language"
+            testID="chat-language"
+            label={`${t('responseLanguage.label')}: ${t(`responseLanguage.${language}`)}`}
+            onPress={() => setLanguageMenu(true)}
+          />
+        }
+        end={<NamuIconButton icon="edit_square" label={t('chat.newChat')} onPress={() => open(null)} testID="chat-new" />}
+      />
 
       {/* Response-language menu: no model terminology (S06). */}
       <ActionSheet

@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import {NamuIcon, type IconName} from '../icons/NamuIcon';
 import {useNamuTheme} from '../theme';
 import {radii, spacing} from '../tokens';
+import {GlassSurface} from './GlassSurface';
 import {NamuButton} from './NamuButton';
 import {NamuText} from './NamuText';
 
@@ -38,26 +39,9 @@ export function StatusNotice({
   testID?: string;
 }): React.JSX.Element {
   const {colors} = useNamuTheme();
-  const accent = tone === 'error' ? colors.error : tone === 'info' && quiet ? colors.textSecondary : colors.action;
-  return (
-    <View
-      testID={testID}
-      accessibilityRole={tone === 'error' ? 'alert' : 'summary'}
-      accessibilityLiveRegion={tone === 'error' ? 'assertive' : 'polite'}
-      style={
-        quiet
-          ? {flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start', paddingVertical: spacing.xs}
-          : {
-              flexDirection: 'row',
-              gap: spacing.md,
-              alignItems: 'flex-start',
-              padding: spacing.lg,
-              borderRadius: radii.surface,
-              backgroundColor: colors.surfaceAlt,
-              borderWidth: 1,
-              borderColor: tone === 'error' ? colors.error : colors.outline,
-            }
-      }>
+  const accent = tone === 'error' ? colors.error : tone === 'info' && quiet ? colors.textSecondary : colors.link;
+  const body = (
+    <>
       <NamuIcon name={ICONS[tone]} color={accent} size={quiet ? 20 : 24} />
       <View style={{flex: 1, gap: spacing.xs}}>
         {title ? (
@@ -83,6 +67,27 @@ export function StatusNotice({
           />
         ) : null}
       </View>
-    </View>
+    </>
+  );
+  const a11y = {
+    testID,
+    accessibilityRole: (tone === 'error' ? 'alert' : 'summary') as 'alert' | 'summary',
+    accessibilityLiveRegion: (tone === 'error' ? 'assertive' : 'polite') as 'assertive' | 'polite',
+  };
+  if (quiet) {
+    return (
+      <View {...a11y} style={{flexDirection: 'row', gap: spacing.sm, alignItems: 'flex-start', paddingVertical: spacing.xs}}>
+        {body}
+      </View>
+    );
+  }
+  return (
+    <GlassSurface
+      radius={radii.surface}
+      contentStyle={tone === 'error' ? {borderColor: colors.error, borderWidth: 1} : undefined}>
+      <View {...a11y} style={{flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start', padding: spacing.lg}}>
+        {body}
+      </View>
+    </GlassSurface>
   );
 }

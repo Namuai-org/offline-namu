@@ -34,7 +34,6 @@
     "settings": "Saituna"
   },
   "intro": {
-    "tagline": "Mataimaki da ke aiki a wayarka, ko babu intanet.",
     "chooseLanguage": "Zaɓi harshenka",
     "aboutTitle": "Kafin ka fara",
     "pointDownload": "Shiryawa na buƙatar saukewa sau ɗaya kawai. Bayan haka, Namu na aiki ba tare da intanet ba.",
@@ -47,7 +46,6 @@
   "setup": {
     "title": "Shirya AI marar intanet",
     "checking": "Ana duba wannan wayar…",
-    "explain": "Namu na buƙatar sauke kunshin AI ɗinsa sau ɗaya. Bayan haka hira ba ta buƙatar intanet.",
     "packageSize": "Girman abin saukewa",
     "availableStorage": "Ma'ajin da babu komai",
     "requiredStorage": "Ma'ajin da ake buƙata",

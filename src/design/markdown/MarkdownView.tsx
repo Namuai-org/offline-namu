@@ -70,7 +70,7 @@ export const MarkdownView = React.memo(function MarkdownView({source, onLinkPres
               key={key}
               accessibilityRole="link"
               onPress={() => onLinkPress(node.href, node.hostname)}
-              style={{color: colors.action, textDecorationLine: 'underline'}}>
+              style={{color: colors.link, textDecorationLine: 'underline'}}>
               {inline(node.children, key)}
             </Text>
           );

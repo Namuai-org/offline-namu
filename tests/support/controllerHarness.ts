@@ -110,3 +110,14 @@ export function waitForIdle(controller: ChatSessionController): Promise<void> {
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+/** Polls instead of guessing a delay, so timing-sensitive tests survive a loaded machine. */
+export async function waitUntil(check: () => boolean | Promise<boolean>, timeoutMs = 4000): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  while (!(await check())) {
+    if (Date.now() > deadline) {
+      throw new Error('waitUntil timed out');
+    }
+    await sleep(5);
+  }
+}

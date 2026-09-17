@@ -34,7 +34,7 @@ export const NamuButton = React.forwardRef<React.ElementRef<typeof Pressable>, N
   const foreground =
     variant === 'primary' ? colors.onAction
     : variant === 'destructive' ? colors.surface
-    : colors.action;
+    : colors.link;
   const borderColor = variant === 'secondary' ? colors.outline : 'transparent';
 
   return (
@@ -76,7 +76,7 @@ export const NamuButton = React.forwardRef<React.ElementRef<typeof Pressable>, N
 const styles = StyleSheet.create({
   base: {
     minHeight: sizes.touchTarget,
-    borderRadius: radii.control,
+    borderRadius: radii.pill,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     justifyContent: 'center',

@@ -3,6 +3,7 @@ import {AccessibilityInfo, View} from 'react-native';
 import {ProgressBar} from 'react-native-paper';
 import {useNamuTheme} from '../theme';
 import {radii, spacing} from '../tokens';
+import {GlassSurface} from './GlassSurface';
 import {NamuText} from './NamuText';
 
 /**
@@ -45,6 +46,7 @@ export function DownloadProgress({
   }, [announce, fraction, stageLabel]);
 
   return (
+    <GlassSurface radius={radii.surface}>
     <View
       testID={testID}
       accessible
@@ -53,14 +55,7 @@ export function DownloadProgress({
       accessibilityValue={
         fraction === null ? {text: stageLabel} : {min: 0, max: 100, now: Math.round(fraction * 100)}
       }
-      style={{
-        gap: spacing.md,
-        padding: spacing.lg,
-        borderRadius: radii.surface,
-        backgroundColor: colors.surface,
-        borderWidth: 1,
-        borderColor: colors.outline,
-      }}>
+      style={{gap: spacing.md, padding: spacing.lg}}>
       <View style={{flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md}}>
         <NamuText weight="semibold" style={{flex: 1}}>
           {stageLabel}
@@ -70,7 +65,7 @@ export function DownloadProgress({
       <ProgressBar
         progress={fraction ?? 0}
         indeterminate={fraction === null}
-        color={colors.action}
+        color={colors.link}
         style={{height: 8, borderRadius: 4, backgroundColor: colors.surfaceAlt}}
       />
       {detail ? (
@@ -79,5 +74,6 @@ export function DownloadProgress({
         </NamuText>
       ) : null}
     </View>
+    </GlassSurface>
   );
 }

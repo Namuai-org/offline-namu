@@ -27,7 +27,7 @@ export function NamuText({
   const resolvedWeight: Weight = weight ?? (variant === 'title' || variant === 'largeTitle' ? 'semibold' : 'regular');
   const color =
     tone === 'secondary' ? colors.textSecondary
-    : tone === 'action' ? colors.action
+    : tone === 'action' ? colors.link
     : tone === 'error' ? colors.error
     : tone === 'onAction' ? colors.onAction
     : colors.textPrimary;

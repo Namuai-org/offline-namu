@@ -35,8 +35,9 @@ const pairs = [
   ['textPrimary', 'background', TEXT], ['textPrimary', 'surface', TEXT], ['textPrimary', 'surfaceAlt', TEXT],
   ['textSecondary', 'background', TEXT], ['textSecondary', 'surface', TEXT], ['textSecondary', 'surfaceAlt', TEXT],
   ['onAction', 'action', TEXT],
-  ['action', 'background', TEXT], ['action', 'surface', TEXT], ['action', 'surfaceAlt', TEXT],
+  ['link', 'background', TEXT], ['link', 'surface', TEXT], ['link', 'surfaceAlt', TEXT],
   ['error', 'background', TEXT], ['error', 'surface', TEXT], ['error', 'surfaceAlt', TEXT],
+  ['action', 'background', CONTROL], ['action', 'surface', CONTROL], ['action', 'surfaceAlt', CONTROL],
   ['outline', 'background', CONTROL], ['outline', 'surface', CONTROL], ['outline', 'surfaceAlt', CONTROL],
   ['focus', 'background', CONTROL], ['focus', 'surface', CONTROL], ['focus', 'surfaceAlt', CONTROL],
 ];

@@ -1,7 +1,9 @@
 import {CHECKPOINT_BYTES} from '../../src/domain/chat/ChatSessionController';
 import {InferenceFailure} from '../../src/domain/inference/failures';
 import {completedTurn} from '../support/chatDb';
-import {makeHarness, sleep, waitForIdle, type Harness} from '../support/controllerHarness';
+import {makeHarness, sleep, waitForIdle, waitUntil, type Harness} from '../support/controllerHarness';
+
+const LONG_ANSWER = Array.from({length: 400}, (_, i) => `w${i} `);
 
 let h: Harness;
 beforeEach(async () => {
@@ -80,6 +82,7 @@ describe('send pipeline (CHAT-001, INF-007)', () => {
 describe('T14 rapid Send twice / Stop twice', () => {
   it('runs a single generation with exactly one terminal event', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     const [a, b] = await Promise.all([h.controller.send(null, 'first'), h.controller.send(null, 'second')]);
     expect(a.accepted).toBe(true);
     expect(b).toEqual({accepted: false, code: 'BUSY'});
@@ -110,6 +113,7 @@ describe('T15 cancel during prefill and decode (INF-006)', () => {
 
   it('retains partial output when stopped during decode', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     const outcome = await h.controller.send(null, 'q');
     await sleep(22);
     h.controller.stop();
@@ -125,6 +129,7 @@ describe('T15 cancel during prefill and decode (INF-006)', () => {
 
   it('declares CANCEL_TIMEOUT after 5 s, blocks new inference and never frees the running context', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     h.engine.script.neverAcknowledgeCancel = true;
     const outcome = await h.controller.send(null, 'q');
     expect(outcome.accepted).toBe(true);
@@ -151,14 +156,14 @@ describe('T16 kill while streaming (CHAT-002)', () => {
     const big = 'x'.repeat(300);
     h.engine.script.tokens = [big, big, big, big, 'tail'];
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     const outcome = await h.controller.send(null, 'will crash');
     if (!outcome.accepted) {
       throw new Error('not accepted');
     }
-    await sleep(40); // 4 × 300 bytes ≥ 1 KiB → size checkpoint fired
+    // 4 × 300 bytes ≥ 1 KiB → a size checkpoint fires while still streaming.
     expect(4 * 300).toBeGreaterThanOrEqual(CHECKPOINT_BYTES);
-    const mid = await attemptRow(outcome.attemptId);
-    expect(String(mid.content).length).toBeGreaterThanOrEqual(1200);
+    await waitUntil(async () => String((await attemptRow(outcome.attemptId)).content).length >= 1200);
     await waitForIdle(h.controller);
 
     // Second generation is "killed": only the timed checkpoint reaches disk.
@@ -169,9 +174,9 @@ describe('T16 kill while streaming (CHAT-002)', () => {
     if (!second.accepted) {
       throw new Error('not accepted');
     }
-    await sleep(25);
+    await waitUntil(() => (h.controller.currentStreamText(second.attemptId) ?? '').length > 0);
     h.timers.advance(1000); // CHECKPOINT_INTERVAL_MS
-    await sleep(5);
+    await waitUntil(async () => String((await attemptRow(second.attemptId)).content).length > 0);
     // --- process death: a new process only runs recovery ---
     expect(await h.t.chat.recoverInterruptedAttempts(9_999)).toBe(1);
     const turn = await h.t.chat.getTurn(second.turnId);
@@ -284,6 +289,7 @@ describe('T19 huge paste / budget overflow (CTX-002)', () => {
 describe('lifecycle (INF-007, INF-008, MEMORY_LOW)', () => {
   it('on background: checkpoints, interrupts, then unloads after acknowledgement', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     const outcome = await h.controller.send(null, 'q');
     await sleep(14);
     h.controller.onBackground();
@@ -301,6 +307,7 @@ describe('lifecycle (INF-007, INF-008, MEMORY_LOW)', () => {
 
   it('on critical memory pressure: stops with MEMORY_LOW and unloads', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     const outcome = await h.controller.send(null, 'q');
     await sleep(14);
     h.controller.onMemoryPressure('critical');
@@ -314,6 +321,7 @@ describe('lifecycle (INF-007, INF-008, MEMORY_LOW)', () => {
 
   it('on severe thermal state: stops, unloads and blocks until 30 s of non-severe readings', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     const outcome = await h.controller.send(null, 'q');
     await sleep(14);
     h.controller.onThermalState('serious');
@@ -348,6 +356,7 @@ describe('lifecycle (INF-007, INF-008, MEMORY_LOW)', () => {
 
   it('quiesce stops the answer and unloads before activation or deletion (DL-011, T22)', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     await h.controller.send(null, 'q');
     await sleep(12);
     expect(await h.controller.quiesce()).toBe(true);
@@ -361,6 +370,7 @@ describe('STORAGE_WRITE_FAILED', () => {
     const big = 'y'.repeat(600);
     h.engine.script.tokens = [big, big, big, big, big, big];
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     const outcome = await h.controller.send(null, 'q');
     if (!outcome.accepted) {
       throw new Error('not accepted');

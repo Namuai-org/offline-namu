@@ -42,8 +42,8 @@ export const NamuTextField = React.forwardRef<TextInput, NamuTextFieldProps>(fun
           accessibilityLabel={label}
           accessibilityHint={error ?? helper ?? undefined}
           placeholderTextColor={colors.textSecondary}
-          selectionColor={colors.action}
-          cursorColor={colors.action}
+          selectionColor={colors.accent}
+          cursorColor={colors.accent}
           onFocus={e => {
             setFocused(true);
             onFocus?.(e);

@@ -34,7 +34,6 @@
     "settings": "Settings"
   },
   "intro": {
-    "tagline": "An assistant that works on your phone, even without internet.",
     "chooseLanguage": "Choose your language",
     "aboutTitle": "Before you start",
     "pointDownload": "Setup needs one download. After that, Namu works without internet.",
@@ -47,7 +46,6 @@
   "setup": {
     "title": "Set up offline AI",
     "checking": "Checking this phone…",
-    "explain": "Namu needs to download its offline AI package once. Chats do not need internet after that.",
     "packageSize": "Download size",
     "availableStorage": "Free storage",
     "requiredStorage": "Storage needed",

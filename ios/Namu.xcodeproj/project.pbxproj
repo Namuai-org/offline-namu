@@ -44,6 +44,7 @@
 		DE3AE624C4CB50B0D568795F /* ExportServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCFDBE2CCE6BEDA03753EDF /* ExportServiceTests.swift */; };
 		DEB2279F166C6E0E754DAD8A /* TransferServiceIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C7CC75B4E8262B08216D642 /* TransferServiceIntegrationTests.swift */; };
 		EC72E587D9675C1A6A136BA3 /* LocalHTTPServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77E972D51524EC60734953FC /* LocalHTTPServer.swift */; };
+		EFF1D131A70AE7B6282FA30B /* NamuGlassView.mm in Sources */ = {isa = PBXBuildFile; fileRef = CC36207879E7065A51A44EAB /* NamuGlassView.mm */; };
 		F65DE0E28AD8554C9358F7E2 /* StrictJSONTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3163347D63A9DD1A1DED84F7 /* StrictJSONTests.swift */; };
 		F6A485F66CEE6D6F2A0483FD /* TestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0F5CFCAA9DA0B79BD2D0CDB /* TestSupport.swift */; };
 		FA7494B99E5B447D28E97951 /* ModelStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1899C69C26E4FC369C8D71A /* ModelStore.swift */; };
@@ -100,7 +101,9 @@
 		B9A8C46B7007E9F1E73A19F2 /* Sha256Streamer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Sha256Streamer.swift; sourceTree = "<group>"; };
 		BA3288E4C4D2AF0E3B3CDB12 /* GGUFCheckTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GGUFCheckTests.swift; sourceTree = "<group>"; };
 		BFF449FE0F7C42D05DCCB22E /* libPods-NamuTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NamuTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C43CD7DF8AF5FFCCF1C11869 /* NamuGlassView.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = NamuGlassView.h; sourceTree = "<group>"; };
 		C9819674BB1D7C25BF010F0A /* GGUFCheck.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GGUFCheck.swift; sourceTree = "<group>"; };
+		CC36207879E7065A51A44EAB /* NamuGlassView.mm */ = {isa = PBXFileReference; includeInIndex = 1; path = NamuGlassView.mm; sourceTree = "<group>"; };
 		CCCFDBE2CCE6BEDA03753EDF /* ExportServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ExportServiceTests.swift; sourceTree = "<group>"; };
 		D16C9C8587FCCF6584342EB2 /* PlatformService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PlatformService.swift; sourceTree = "<group>"; };
 		D2BAFC8A00B1BF6765CCE6BE /* PrivacyCover.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PrivacyCover.swift; sourceTree = "<group>"; };
@@ -268,6 +271,8 @@
 				DF846C6B9BD643F9DC463A6B /* TransferJournal.swift */,
 				5AAAE69CB91BF0AC88862556 /* TransferService.swift */,
 				035A83E4310B972D3A3E5DBC /* NamuSwiftBridge.h */,
+				C43CD7DF8AF5FFCCF1C11869 /* NamuGlassView.h */,
+				CC36207879E7065A51A44EAB /* NamuGlassView.mm */,
 			);
 			name = Native;
 			path = Namu/Native;
@@ -560,6 +565,7 @@
 				5384703F887DC635AF14D9C8 /* StrictJSON.swift in Sources */,
 				0B6B9FBEC7805AC6350443EA /* TransferJournal.swift in Sources */,
 				6FE33708528D812E2C615F91 /* TransferService.swift in Sources */,
+				EFF1D131A70AE7B6282FA30B /* NamuGlassView.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

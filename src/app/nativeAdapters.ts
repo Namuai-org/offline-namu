@@ -7,10 +7,14 @@ import {NativeDeviceService} from '../infrastructure/platform/NativeDeviceServic
 import {NativeExportService} from '../infrastructure/platform/NativeExportService';
 import {NativeTransferService} from '../infrastructure/platform/NativeTransferService';
 import {BUILD_FLAGS} from './buildFlags';
+import {registerGlassBackend} from '../design/components/GlassSurface';
+import NamuGlassView from '../infrastructure/platform/specs/NamuGlassViewNativeComponent';
 import type {PlatformAdapters} from './services';
 
 /** Production wiring of native services. */
 export function nativeAdapters(): PlatformAdapters {
+  // Apple-style glass is an iOS system material; Android keeps the token fallback.
+  registerGlassBackend(Platform.OS === 'ios' ? NamuGlassView : null);
   return {
     device: new NativeDeviceService(),
     transfer: new NativeTransferService(),

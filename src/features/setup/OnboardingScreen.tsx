@@ -5,6 +5,7 @@ import {useTranslation} from 'react-i18next';
 import {useServices} from '../../app/ServicesContext';
 import {useAppStore} from '../../app/stores';
 import {APP_LANGUAGES, type AppLanguage} from '../../data/repositories/PreferencesRepository';
+import {GlassSurface} from '../../design/components/GlassSurface';
 import {NamuButton} from '../../design/components/NamuButton';
 import {NamuText} from '../../design/components/NamuText';
 import {ChoiceRow} from '../../design/components/Rows';
@@ -44,7 +45,7 @@ export function OnboardingScreen(): React.JSX.Element {
       accessibilityRole="image"
       accessibilityLabel="Namu"
       resizeMode="contain"
-      style={{width: 240, height: 87, alignSelf: 'flex-start'}}
+      style={{width: 240, height: 87, alignSelf: 'center', marginTop: spacing.xl}}
     />
   );
 
@@ -55,8 +56,7 @@ export function OnboardingScreen(): React.JSX.Element {
         testID="onboarding-language"
         footer={<NamuButton label={t('common.continue')} onPress={() => setStep('intro')} testID="onboarding-continue" />}>
         {wordmark}
-        <NamuText tone="secondary">{t('intro.tagline')}</NamuText>
-        <NamuText variant="title" accessibilityRole="header" style={{marginTop: spacing.xl}}>
+        <NamuText variant="title" align="center" accessibilityRole="header" style={{marginTop: spacing.xl}}>
           {t('intro.chooseLanguage')}
         </NamuText>
         <View accessibilityRole="radiogroup" style={{gap: spacing.sm}}>
@@ -90,18 +90,18 @@ export function OnboardingScreen(): React.JSX.Element {
         </>
       }>
       {wordmark}
-      <NamuText variant="title" accessibilityRole="header" style={{marginTop: spacing.lg}}>
+      <NamuText variant="title" align="center" accessibilityRole="header" style={{marginTop: spacing.lg}}>
         {t('intro.aboutTitle')}
       </NamuText>
-      <View style={{gap: spacing.lg, marginVertical: spacing.md}}>
+      <GlassSurface contentStyle={{padding: spacing.lg, gap: spacing.lg}} style={{marginVertical: spacing.md}}>
         {points.map(point => (
           <View key={point.icon} style={{flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start'}}>
-            <NamuIcon name={point.icon} color={theme.colors.action} />
+            <NamuIcon name={point.icon} color={theme.colors.link} />
             <NamuText style={{flex: 1}}>{point.text}</NamuText>
           </View>
         ))}
-      </View>
-      <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm}}>
+      </GlassSurface>
+      <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: spacing.sm}}>
         <NamuButton label={t('intro.privacyLink')} variant="text" icon="shield" onPress={() => navigation.navigate('Privacy')} />
         <NamuButton label={t('intro.aboutLink')} variant="text" icon="info" onPress={() => navigation.navigate('AboutAi')} />
       </View>

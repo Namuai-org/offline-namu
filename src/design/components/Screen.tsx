@@ -15,6 +15,8 @@ export function Screen({
   edges = ['left', 'right'],
   contentStyle,
   footer,
+  topInset = 0,
+  bottomInset = 0,
   testID,
 }: {
   children: React.ReactNode;
@@ -22,6 +24,10 @@ export function Screen({
   edges?: Edge[];
   contentStyle?: StyleProp<ViewStyle>;
   footer?: React.ReactNode;
+  /** Space reserved under a floating/transparent glass header. */
+  topInset?: number;
+  /** Space reserved above the floating glass tab bar. */
+  bottomInset?: number;
   testID?: string;
 }): React.JSX.Element {
   const {colors} = useNamuTheme();
@@ -36,11 +42,16 @@ export function Screen({
       {scroll ? (
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={[column, {paddingVertical: spacing.lg, gap: spacing.md}, contentStyle]}>
+          contentContainerStyle={[
+            column,
+            {paddingTop: spacing.lg + topInset, paddingBottom: spacing.lg + bottomInset, gap: spacing.md},
+            contentStyle,
+          ]}
+          scrollIndicatorInsets={{top: topInset, bottom: bottomInset}}>
           {children}
         </ScrollView>
       ) : (
-        <View style={[column, {flex: 1}, contentStyle]}>{children}</View>
+        <View style={[column, {flex: 1, paddingTop: topInset, paddingBottom: bottomInset}, contentStyle]}>{children}</View>
       )}
       {footer ? <View style={[column, {paddingVertical: spacing.md, gap: spacing.sm}]}>{footer}</View> : null}
     </SafeAreaView>

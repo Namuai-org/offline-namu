@@ -1,4 +1,5 @@
 import React from 'react';
+import {useHeaderHeight} from '@react-navigation/elements';
 import {useRoute, type RouteProp} from '@react-navigation/native';
 import type {RootStackParamList} from '../../app/navigationTypes';
 import {NamuText} from '../../design/components/NamuText';
@@ -37,9 +38,10 @@ function chunks(text: string, size = 4000): string[] {
 export function LegalTextScreen(): React.JSX.Element {
   const route = useRoute<RouteProp<RootStackParamList, 'LegalText'>>();
   const document = DOCUMENTS[route.params.document];
+  const headerHeight = useHeaderHeight();
   return (
-    <Screen testID="legal-screen">
-      <NamuText variant="title" accessibilityRole="header">
+    <Screen testID="legal-screen" topInset={headerHeight}>
+      <NamuText variant="title" align="center" accessibilityRole="header">
         {document.title}
       </NamuText>
       {chunks(document.text).map((part, index) => (

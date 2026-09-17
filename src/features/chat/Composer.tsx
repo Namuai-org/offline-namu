@@ -4,10 +4,11 @@ import {useTranslation} from 'react-i18next';
 import {useServices} from '../../app/ServicesContext';
 import {DRAFT_MAX_CODE_POINTS, NEW_CHAT_DRAFT_KEY} from '../../data/repositories/DraftRepository';
 import {codePointLength} from '../../domain/text/graphemes';
+import {GlassSurface} from '../../design/components/GlassSurface';
 import {NamuButton} from '../../design/components/NamuButton';
 import {NamuText} from '../../design/components/NamuText';
 import {useNamuTheme} from '../../design/theme';
-import {fonts, radii, sizes, spacing, typeScale} from '../../design/tokens';
+import {fonts, sizes, spacing, typeScale} from '../../design/tokens';
 
 const DRAFT_SAVE_DELAY_MS = 300;
 const MAX_LINES = 6;
@@ -36,9 +37,13 @@ export const Composer = React.forwardRef<
     onStop: () => void;
   }
 >(function Composer({conversationId, mode, blocked, readOnly, onSend, onStop}, ref) {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
   const {colors} = useNamuTheme();
   const services = useServices();
+  // Neither platform ships a Hausa dictionary: English autocorrect rewrites
+  // Hausa words ("Sannu" became "Danny" on the simulator), so it is off when
+  // the app language is Hausa. French and English keep the OS behaviour.
+  const assistTyping = i18n.language !== 'ha';
   const draftKey = conversationId ?? NEW_CHAT_DRAFT_KEY;
   const [text, setText] = useState('');
   const [focused, setFocused] = useState(false);
@@ -165,13 +170,13 @@ export const Composer = React.forwardRef<
         </NamuText>
       ) : null}
       <View style={{flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm}}>
-        <View
-          style={{
-            flex: 1,
-            borderRadius: radii.surface,
-            borderWidth: focused || tooLong ? 2 : 1,
-            borderColor: tooLong ? colors.error : focused ? colors.focus : colors.outline,
-            backgroundColor: colors.surface,
+        <GlassSurface
+          floating
+          radius={26}
+          style={{flex: 1}}
+          contentStyle={{
+            borderWidth: focused || tooLong ? 2 : undefined,
+            borderColor: tooLong ? colors.error : focused ? colors.focus : undefined,
             paddingHorizontal: spacing.lg,
             minHeight: sizes.touchTarget,
             justifyContent: 'center',
@@ -182,6 +187,8 @@ export const Composer = React.forwardRef<
             onChangeText={change}
             editable={!readOnly}
             multiline
+            autoCorrect={assistTyping}
+            spellCheck={assistTyping}
             // Mobile Return inserts a newline; it never sends (A11Y-002).
             submitBehavior="newline"
             scrollEnabled
@@ -190,8 +197,8 @@ export const Composer = React.forwardRef<
             placeholder={t('chat.composerPlaceholder')}
             placeholderTextColor={colors.textSecondary}
             accessibilityLabel={t('chat.composerLabel')}
-            selectionColor={colors.action}
-            cursorColor={colors.action}
+            selectionColor={colors.accent}
+            cursorColor={colors.accent}
             style={{
               fontFamily: fonts.regular,
               fontSize: typeScale.body.fontSize,
@@ -203,7 +210,7 @@ export const Composer = React.forwardRef<
               textAlignVertical: 'center',
             }}
           />
-        </View>
+        </GlassSurface>
         {generating ? (
           <NamuButton
             testID="composer-stop"

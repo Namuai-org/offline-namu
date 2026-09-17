@@ -2,7 +2,8 @@ import React, {useState} from 'react';
 import {Pressable, View} from 'react-native';
 import {NamuIcon, type IconName} from '../icons/NamuIcon';
 import {useNamuTheme} from '../theme';
-import {sizes, spacing} from '../tokens';
+import {radii, sizes, spacing} from '../tokens';
+import {GlassSurface} from './GlassSurface';
 import {NamuText} from './NamuText';
 
 /** S07 label/value row. Text-bearing, so no fixed height (DS-002). */
@@ -115,35 +116,43 @@ export function ChoiceRow({
 }): React.JSX.Element {
   const {colors} = useNamuTheme();
   return (
-    <Pressable
-      testID={testID}
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{selected, checked: selected}}
-      accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
-      style={({pressed}) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-        minHeight: sizes.touchTarget + spacing.sm,
-        paddingVertical: spacing.md,
-        paddingHorizontal: spacing.lg,
-        borderRadius: 12,
-        borderWidth: selected ? 2 : 1,
-        borderColor: selected ? colors.action : colors.outline,
-        backgroundColor: colors.surface,
-        opacity: pressed ? 0.7 : 1,
-      })}>
-      <View style={{flex: 1, gap: 2}}>
-        <NamuText weight="medium">{title}</NamuText>
-        {subtitle ? (
-          <NamuText variant="label" tone="secondary">
-            {subtitle}
-          </NamuText>
-        ) : null}
-      </View>
-      {selected ? <NamuIcon name="check" color={colors.action} /> : <View style={{width: sizes.icon}} />}
-    </Pressable>
+    <GlassSurface
+      radius={radii.surface}
+      contentStyle={selected ? {borderColor: colors.textPrimary, borderWidth: 2} : undefined}>
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        accessibilityRole="radio"
+        accessibilityState={{selected, checked: selected}}
+        accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
+        style={({pressed}) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: spacing.md,
+          minHeight: sizes.touchTarget + spacing.sm,
+          paddingVertical: spacing.md,
+          paddingHorizontal: spacing.lg,
+          opacity: pressed ? 0.7 : 1,
+        })}>
+        <View style={{flex: 1, gap: 2}}>
+          <NamuText weight="medium">{title}</NamuText>
+          {subtitle ? (
+            <NamuText variant="label" tone="secondary">
+              {subtitle}
+            </NamuText>
+          ) : null}
+        </View>
+        {/* Selection = heavier edge + check mark + a Sahel dot; never colour alone. */}
+        {selected ? (
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: spacing.xs}}>
+            <View style={{width: 6, height: 6, borderRadius: 3, backgroundColor: colors.accent}} />
+            <NamuIcon name="check" color={colors.link} />
+          </View>
+        ) : (
+          <View style={{width: sizes.icon}} />
+        )}
+      </Pressable>
+    </GlassSurface>
   );
 }
 

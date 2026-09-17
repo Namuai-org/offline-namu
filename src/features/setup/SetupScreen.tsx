@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {AppState, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {StackActions, useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {useServices} from '../../app/ServicesContext';
 import {useTransferStore} from '../../app/stores';
@@ -8,6 +8,7 @@ import {evaluateEligibility, requiredAdditionalBytes, type Eligibility} from '..
 import type {DeviceProfile} from '../../domain/model/services';
 import type {DescriptorSummary, TransferInfo} from '../../domain/model/transferTypes';
 import {DownloadProgress} from '../../design/components/DownloadProgress';
+import {GlassSurface} from '../../design/components/GlassSurface';
 import {NamuButton} from '../../design/components/NamuButton';
 import {NamuDialog} from '../../design/components/NamuDialog';
 import {NamuText} from '../../design/components/NamuText';
@@ -78,7 +79,7 @@ function DeviceCheck(): React.JSX.Element {
     void runCheck();
   }, [runCheck]);
 
-  const leave = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Tabs'));
+  const leave = () => (navigation.canGoBack() ? navigation.goBack() : navigation.dispatch(StackActions.popTo('Tabs')));
 
   const start = async (allowMetered: boolean) => {
     setConfirmMetered(false);
@@ -100,7 +101,7 @@ function DeviceCheck(): React.JSX.Element {
   if (!profile || !descriptor || !eligibility) {
     return (
       <Screen edges={['top', 'bottom', 'left', 'right']} testID="setup-checking">
-        <NamuText variant="title" accessibilityRole="header">{t('setup.title')}</NamuText>
+        <NamuText variant="title" align="center" accessibilityRole="header">{t('setup.title')}</NamuText>
         {checkFailed ? (
           <StatusNotice
             tone="error"
@@ -158,8 +159,7 @@ function DeviceCheck(): React.JSX.Element {
           <NamuButton label={ineligible ? t('common.back') : t('setup.later')} variant="text" onPress={leave} testID="setup-later" />
         </>
       }>
-      <NamuText variant="title" accessibilityRole="header">{t('setup.title')}</NamuText>
-      <NamuText tone="secondary">{t('setup.explain')}</NamuText>
+      <NamuText variant="title" align="center" accessibilityRole="header">{t('setup.title')}</NamuText>
 
       {ineligible ? (
         <StatusNotice
@@ -175,12 +175,12 @@ function DeviceCheck(): React.JSX.Element {
       ) : null}
 
       {!descriptorBad ? (
-        <View>
+        <GlassSurface contentStyle={{paddingHorizontal: spacing.lg, paddingVertical: spacing.sm}}>
           {/* Human-readable size derived from the signed exact byte count (S02). */}
           <StorageRow label={t('setup.packageSize')} value={format.bytes(bytes)} testID="setup-size" />
           <StorageRow label={t('setup.availableStorage')} value={format.bytes(profile.freeDiskBytes)} />
           <StorageRow label={t('setup.requiredStorage')} value={format.bytes(required)} tone={missing > 0 ? 'error' : 'primary'} />
-        </View>
+        </GlassSurface>
       ) : null}
 
       {!ineligible && missing > 0 ? (
@@ -301,7 +301,7 @@ function SetupProgress({transfer, installed}: {transfer: TransferInfo | null; in
       footer={
         <>
           {phase === 'installed' ? (
-            <NamuButton label={t('progress.startChat')} onPress={() => navigation.navigate('Tabs', {screen: 'Chat'})} testID="setup-done" />
+            <NamuButton label={t('progress.startChat')} onPress={() => navigation.dispatch(StackActions.popTo('Tabs', {screen: 'Chat'}))} testID="setup-done" />
           ) : null}
           {transfer && (phase === 'downloading' || (phase === 'waiting' && !transfer.userPaused)) ? (
             <NamuButton label={t('progress.pause')} icon="pause" variant="secondary" disabled={busy} onPress={() => act(() => services.transfer.pause(transfer.transferId))} testID="setup-pause" />
@@ -335,11 +335,11 @@ function SetupProgress({transfer, installed}: {transfer: TransferInfo | null; in
             <NamuButton label={t('progress.cancelSetup')} variant="text" onPress={() => setConfirmCancel(true)} testID="setup-cancel" />
           ) : null}
           {phase !== 'installed' ? (
-            <NamuButton label={t('common.close')} variant="text" onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Tabs'))} />
+            <NamuButton label={t('common.close')} variant="text" onPress={() => (navigation.canGoBack() ? navigation.goBack() : navigation.dispatch(StackActions.popTo('Tabs')))} />
           ) : null}
         </>
       }>
-      <NamuText variant="title" accessibilityRole="header">{t('progress.title')}</NamuText>
+      <NamuText variant="title" align="center" accessibilityRole="header">{t('progress.title')}</NamuText>
       <DownloadProgress
         testID="setup-progress-surface"
         stageLabel={stageLabel}

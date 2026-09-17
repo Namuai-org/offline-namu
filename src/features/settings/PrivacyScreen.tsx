@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {useHeaderHeight} from '@react-navigation/elements';
 import {useTranslation} from 'react-i18next';
 import {useServices} from '../../app/ServicesContext';
 import {useAppStore, useChatViewStore} from '../../app/stores';
@@ -19,6 +20,7 @@ import {useExport} from '../shared/useExport';
  */
 export function PrivacyScreen(): React.JSX.Element {
   const {t} = useTranslation();
+  const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
   const services = useServices();
   const exporter = useExport();
@@ -81,10 +83,7 @@ export function PrivacyScreen(): React.JSX.Element {
   ];
 
   return (
-    <Screen testID="privacy-screen">
-      <NamuText variant="title" accessibilityRole="header">
-        {t('privacy.title')}
-      </NamuText>
+    <Screen testID="privacy-screen" topInset={headerHeight}>
       {paragraphs.map(([title, body]) => (
         <View key={title} style={{gap: spacing.xs, marginTop: spacing.sm}}>
           <NamuText weight="semibold" accessibilityRole="header">

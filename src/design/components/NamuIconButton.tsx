@@ -20,7 +20,7 @@ export const NamuIconButton = React.forwardRef<
   const {colors} = useNamuTheme();
   const [focused, setFocused] = useState(false);
   const color =
-    tone === 'action' ? colors.action
+    tone === 'action' ? colors.link
     : tone === 'error' ? colors.error
     : tone === 'secondary' ? colors.textSecondary
     : colors.textPrimary;

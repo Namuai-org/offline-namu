@@ -88,7 +88,7 @@ export default function App({adapters}: {adapters?: PlatformAdapters}): React.JS
             Namu could not start. Close the app and open it again.
           </NamuText>
         ) : (
-          <ActivityIndicator color={colors.action} />
+          <ActivityIndicator color={colors.accent} />
         )}
       </View>
     );

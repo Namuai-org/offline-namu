@@ -1,7 +1,7 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:41bf231d-c056-54d6-b053-21736e29f677",
+  "serialNumber": "urn:uuid:86b15dbf-87af-5202-b765-c366b65ff5ed",
   "version": 1,
   "metadata": {
     "tools": [
@@ -21,7 +21,7 @@
     "properties": [
       {
         "name": "namu:package-lock.sha256",
-        "value": "41bf231dc05634d6705321736e29f677768611971ec40354864b96a2be764b09"
+        "value": "86b15dbf87af52023765c366b65ff5ede9d68ba074a8086946ca84167d574039"
       },
       {
         "name": "namu:scope",
@@ -17946,6 +17946,7 @@
       "dependsOn": [
         "pkg:npm/%40op-engineering/op-sqlite@18.2.3",
         "pkg:npm/%40react-navigation/bottom-tabs@7.19.1",
+        "pkg:npm/%40react-navigation/elements@2.9.42",
         "pkg:npm/%40react-navigation/native-stack@7.19.1",
         "pkg:npm/%40react-navigation/native@7.4.1",
         "pkg:npm/i18next@26.4.2",

@@ -6,9 +6,11 @@ import {useServices} from '../../app/ServicesContext';
 import {useAppStore, useTransferStore} from '../../app/stores';
 import {APP_LANGUAGES, type ThemePreference} from '../../data/repositories/PreferencesRepository';
 import {RESPONSE_LANGUAGES} from '../../data/types';
+import {GlassHeader} from '../../design/components/GlassHeader';
 import {NamuText} from '../../design/components/NamuText';
 import {ChoiceRow, ListRow, SectionHeader} from '../../design/components/Rows';
 import {Screen} from '../../design/components/Screen';
+import {useTabBarSpace, useTopBarSpace} from '../../design/layout';
 import {spacing} from '../../design/tokens';
 import {ReturnToAnswerBanner} from '../shared/ReturnToAnswerBanner';
 
@@ -29,6 +31,8 @@ export function SettingsScreen(): React.JSX.Element {
   const services = useServices();
   const preferences = useAppStore(s => s.preferences);
   const installState = useTransferStore(s => s.snapshot.install.state);
+  const topSpace = useTopBarSpace();
+  const tabSpace = useTabBarSpace();
   if (!preferences) {
     return <Screen edges={['top', 'left', 'right']}>{null}</Screen>;
   }
@@ -38,10 +42,8 @@ export function SettingsScreen(): React.JSX.Element {
     : t('storage.statusNeedsSetup');
 
   return (
-    <Screen edges={['top', 'left', 'right']} testID="settings-screen">
-      <NamuText variant="title" accessibilityRole="header">
-        {t('settings.title')}
-      </NamuText>
+    <>
+    <Screen edges={['left', 'right']} topInset={topSpace} bottomInset={tabSpace} testID="settings-screen">
       <ReturnToAnswerBanner />
 
       <SectionHeader title={t('settings.language')} />
@@ -100,5 +102,7 @@ export function SettingsScreen(): React.JSX.Element {
       <ListRow icon="info" title={t('settings.aboutAi')} subtitle={`Namu ${services.info.appVersion}`} onPress={() => navigation.navigate('AboutAi')} testID="settings-about" />
       <View style={{height: spacing.xl}} />
     </Screen>
+    <GlassHeader title={t('settings.title')} />
+    </>
   );
 }

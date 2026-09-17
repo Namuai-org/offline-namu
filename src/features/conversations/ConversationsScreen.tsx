@@ -11,6 +11,7 @@ import type {ConversationListItem, SearchHit} from '../../data/types';
 import {validateRename} from '../../domain/chat/title';
 import {ActionSheet, type ActionSheetItem} from '../../design/components/ActionSheet';
 import {EmptyState} from '../../design/components/EmptyState';
+import {GlassHeader} from '../../design/components/GlassHeader';
 import {NamuDialog} from '../../design/components/NamuDialog';
 import {NamuIconButton} from '../../design/components/NamuIconButton';
 import {NamuText} from '../../design/components/NamuText';
@@ -18,6 +19,7 @@ import {NamuTextField} from '../../design/components/NamuTextField';
 import {StatusNotice} from '../../design/components/StatusNotice';
 import {NamuIcon} from '../../design/icons/NamuIcon';
 import {markdownToPlainText} from '../../design/markdown/parseMarkdown';
+import {useTabBarSpace, useTopBarSpace} from '../../design/layout';
 import {useNamuTheme} from '../../design/theme';
 import {sizes, spacing} from '../../design/tokens';
 import {useDebounced, useFormatters} from '../shared/hooks';
@@ -53,6 +55,8 @@ export function ConversationsScreen(): React.JSX.Element {
   const [working, setWorking] = useState(false);
   const [deleteNotice, setDeleteNotice] = useState<string | null>(null);
   const loading = useRef(false);
+  const topSpace = useTopBarSpace();
+  const tabSpace = useTabBarSpace();
 
   const reload = useCallback(async () => {
     if (!services.conversations) {
@@ -259,21 +263,9 @@ export function ConversationsScreen(): React.JSX.Element {
   const separator = () => <View style={{height: 1, backgroundColor: colors.surfaceAlt}} />;
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={{flex: 1, backgroundColor: colors.background}} testID="conversations-screen">
+    <SafeAreaView edges={['left', 'right']} style={{flex: 1, backgroundColor: colors.background}} testID="conversations-screen">
       <View style={{flex: 1, width: '100%', maxWidth: sizes.maxContentWidth, alignSelf: 'center', paddingHorizontal: sizes.phonePadding, gap: spacing.sm}}>
-        <View style={{flexDirection: 'row', alignItems: 'center', minHeight: 56}}>
-          <NamuText variant="title" accessibilityRole="header" style={{flex: 1}}>
-            {t('conversations.title')}
-          </NamuText>
-          <NamuIconButton
-            icon="edit_square"
-            label={t('chat.newChat')}
-            onPress={() => {
-              openChat(null);
-              navigation.navigate('Tabs', {screen: 'Chat'});
-            }}
-          />
-        </View>
+        <View style={{height: topSpace}} />
         <ReturnToAnswerBanner />
         {deleteNotice ? <StatusNotice tone="error" message={deleteNotice} testID="conversations-notice" /> : null}
         <NamuTextField
@@ -296,6 +288,7 @@ export function ConversationsScreen(): React.JSX.Element {
             renderItem={renderHit}
             ItemSeparatorComponent={separator}
             keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{paddingBottom: tabSpace}}
             ListEmptyComponent={<EmptyState icon="search" title={t('conversations.noResults', {query: debouncedQuery.trim()})} />}
           />
         ) : (
@@ -306,6 +299,7 @@ export function ConversationsScreen(): React.JSX.Element {
             ItemSeparatorComponent={separator}
             onEndReached={() => void loadMore()}
             onEndReachedThreshold={0.5}
+            contentContainerStyle={{paddingBottom: tabSpace}}
             keyboardShouldPersistTaps="handled"
             ListEmptyComponent={
               <EmptyState
@@ -334,6 +328,19 @@ export function ConversationsScreen(): React.JSX.Element {
         cancelLabel={t('common.cancel')}
         onDismiss={() => setMenuFor(null)}
         items={menuItems}
+      />
+      <GlassHeader
+        title={t('conversations.title')}
+        end={
+          <NamuIconButton
+            icon="edit_square"
+            label={t('chat.newChat')}
+            onPress={() => {
+              openChat(null);
+              navigation.navigate('Tabs', {screen: 'Chat'});
+            }}
+          />
+        }
       />
       <NamuDialog
         visible={renaming !== null}

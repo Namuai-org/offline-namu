@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {useHeaderHeight} from '@react-navigation/elements';
 import {useTranslation} from 'react-i18next';
 import {useServices} from '../../app/ServicesContext';
 import {useChatSessionStore, useTransferStore} from '../../app/stores';
@@ -25,6 +26,7 @@ type Message = {tone: 'info' | 'success' | 'error'; text: string; code?: string}
  */
 export function OfflineStorageScreen(): React.JSX.Element {
   const {t} = useTranslation();
+  const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
   const services = useServices();
   const format = useFormatters();
@@ -112,10 +114,7 @@ export function OfflineStorageScreen(): React.JSX.Element {
       : 0;
 
   return (
-    <Screen testID="storage-screen">
-      <NamuText variant="title" accessibilityRole="header">
-        {t('storage.title')}
-      </NamuText>
+    <Screen testID="storage-screen" topInset={headerHeight}>
       <View>
         <StorageRow label={t('storage.status')} value={statusText} tone={install.state === 'installed' ? 'action' : 'error'} testID="storage-status" />
         <StorageRow label={t('storage.packageSize')} value={install.active ? format.bytes(install.active.bytes) : '—'} />

@@ -34,7 +34,6 @@
     "settings": "Réglages"
   },
   "intro": {
-    "tagline": "Un assistant qui fonctionne sur votre téléphone, même sans internet.",
     "chooseLanguage": "Choisissez votre langue",
     "aboutTitle": "Avant de commencer",
     "pointDownload": "L'installation demande un seul téléchargement. Ensuite, Namu fonctionne sans internet.",
@@ -47,7 +46,6 @@
   "setup": {
     "title": "Installer l'IA hors ligne",
     "checking": "Vérification du téléphone…",
-    "explain": "Namu doit télécharger une seule fois son IA hors ligne. Ensuite, les discussions n'ont plus besoin d'internet.",
     "packageSize": "Taille du téléchargement",
     "availableStorage": "Espace libre",
     "requiredStorage": "Espace nécessaire",

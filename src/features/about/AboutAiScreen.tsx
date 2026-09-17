@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Linking, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {useHeaderHeight} from '@react-navigation/elements';
 import {useTranslation} from 'react-i18next';
 import {BUILD_FLAGS} from '../../app/buildFlags';
 import {useServices} from '../../app/ServicesContext';
@@ -23,6 +24,7 @@ import {spacing} from '../../design/tokens';
  */
 export function AboutAiScreen(): React.JSX.Element {
   const {t} = useTranslation();
+  const headerHeight = useHeaderHeight();
   const navigation = useNavigation();
   const services = useServices();
   const active = useTransferStore(s => s.snapshot.install.active);
@@ -30,10 +32,7 @@ export function AboutAiScreen(): React.JSX.Element {
   const host = link ? safeLinkHost(link) : null;
 
   return (
-    <Screen testID="about-screen">
-      <NamuText variant="title" accessibilityRole="header">
-        {t('about.title')}
-      </NamuText>
+    <Screen testID="about-screen" topInset={headerHeight}>
 
       <SectionHeader title={t('about.modelTitle')} />
       <NamuText>{t('about.modelBody')}</NamuText>

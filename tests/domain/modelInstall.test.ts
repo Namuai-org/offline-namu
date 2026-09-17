@@ -5,6 +5,7 @@ import {FAKE_BYTES, FakeTransferService} from '../support/fakeAdapters';
 import {makeHarness, sleep, waitForIdle, type Harness} from '../support/controllerHarness';
 
 const GIB = 1024 * 1024 * 1024;
+const LONG_ANSWER = Array.from({length: 400}, (_, i) => `w${i} `);
 
 describe('DEV-002 / DL-009 eligibility and space', () => {
   const base = {physicalMemoryBytes: 5_800_000_000, logicalCpuCount: 8, freeDiskBytes: 10e9, osSupported: true, abiSupported: true, metalSupported: true, thermalApiAvailable: true};
@@ -100,6 +101,7 @@ describe('DL-010/011 foreground self-test and activation', () => {
     transfer.installNow();
     await install.refresh();
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     await h.controller.send(null, 'long answer please');
     await sleep(12);
     await stage(true);
@@ -131,6 +133,7 @@ describe('DL-010/011 foreground self-test and activation', () => {
 
   it('does not start a self-test when the running answer cannot be stopped (INF-006)', async () => {
     h.engine.script.tokenDelayMs = 5;
+    h.engine.script.tokens = LONG_ANSWER;
     h.engine.script.neverAcknowledgeCancel = true;
     transfer.installNow();
     await install.refresh();

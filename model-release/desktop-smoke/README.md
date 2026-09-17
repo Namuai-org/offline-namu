@@ -7,15 +7,14 @@ answers, multi-turn formatting and stop behaviour, and it writes the
 template/stop-token fixtures the mobile adapter tests compare against
 (INF-002, INF-003). **Desktop success does not replace mobile testing.**
 
-> **Execution status.** Nothing here has been run against llama.cpp or the real
-> model by the author: llama.cpp was not built and the 2.14 GB artifact was not
-> downloaded. What *was* executed: `smoke.test.mjs` (in `node --test
-> model-release/`), which checks the GGUF metadata reader on a synthesized
-> file, the pure checks, and the whole `run-smoke.mjs` flow against **stub**
-> `llama-server`/`llama-tokenize` programs. The tag `b10256` and every
-> command-line flag and HTTP endpoint used below were checked against the
-> llama.cpp sources and server README at that tag (read-only). The Hausa prompt
-> wording has not been reviewed by a native speaker.
+> **Execution status.** llama.cpp `b10256` has been built locally (commit
+> `6c8dcaa7ae41fa9f4aa2b3b68ee82cb8b2a03632`, CPU only) and the locked 2.14 GB
+> artifact is downloaded. `identity-probe.mjs` (below) **has** been run against
+> them. `run-smoke.mjs` itself has still only been executed against **stub**
+> `llama-server`/`llama-tokenize` programs (`smoke.test.mjs`, part of
+> `node --test model-release/`); the real smoke run and the template reference
+> render are outstanding. The Hausa prompt wording has not been reviewed by a
+> native speaker.
 
 ## Prerequisites
 
@@ -85,7 +84,7 @@ The script:
    message, multi-turn and multilingual inputs, the rendered prompt from
    `POST /apply-template` and its token ids/count from `POST /tokenize`. These
    are the reference renders for the adapter's template and token-count tests
-   (INF-002). The system text is the bundled `namu-text-1`
+   (INF-002). The system text is the bundled `namu-text-2`
    (`smoke.test.mjs` fails if `prompts.json` drifts from
    `src/domain/chat/systemPrompt.ts`).
 6. **Three languages, single turn** (`prompts.json`): explanation and
@@ -134,3 +133,23 @@ claims from desktop or simulator runs).
 | `gguf-metadata.mjs` | dependency-free GGUF metadata and tokenizer fixture dump; usable on its own: `node gguf-metadata.mjs --model <gguf> --out artifact-fixture.json` |
 | `prompts.json` | system text, three-language prompts, multi-turn, stop and template fixture inputs |
 | `smoke.test.mjs` | unit tests + stub end-to-end run (no llama.cpp, no model) |
+
+## Identity probe (PRD-006, PA-006)
+
+`identity-probe.mjs` asks the locked model who it is — in English, French and
+Hausa, several seeds each — using the app's **real** system instruction
+(imported from `src/domain/chat/systemPrompt.ts`) and production sampling. It
+fails when the model names itself "Aya" in more than 5 % of samples or says
+"Namu" in fewer than 85 %.
+
+```bash
+llama.cpp-b10256/build/bin/llama-server -m ../artifacts/tiny-aya-global-q4_k_m.gguf -c 2048 -b 256 -ub 128 -t 4 -np 1 --jinja --port 8790
+```
+
+```bash
+node model-release/desktop-smoke/identity-probe.mjs --seeds 1,2,3,4,5
+```
+
+Result for `namu-text-2` on 2026-09-17 (executed): 35 samples, "Namu" 33,
+"Aya" 0. Run it again whenever the instruction, the artifact or the runtime
+changes (EVAL-004).

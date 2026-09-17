@@ -30,7 +30,7 @@ const lock = {
 function context(keys, overrides = {}) {
   return {
     keys, source: 'update', appBuild: 10, runtimeBuildId: RUNTIME,
-    promptVersions: ['namu-text-1'], licenseNoticeIds: ['tiny-aya-cc-by-nc-4.0-v1'],
+    promptVersions: ['namu-text-2'], licenseNoticeIds: ['tiny-aya-cc-by-nc-4.0-v1'],
     nowMs: Date.parse('2026-09-17T12:00:00Z'), highestSequence: 0,
     highestSequencePayloadSha256: null, knownBad: [], ...overrides,
   };

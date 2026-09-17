@@ -53,7 +53,7 @@ hash to record.
   `MODEL_INCOMPATIBLE`.
 * The template **always renders Cohere's upstream preamble** ("System
   Preamble" + "Default Preamble", which names the assistant *Aya*), and puts
-  Namu's `namu-text-1` instruction under `# Developer Preamble`, which the
+  Namu's `namu-text-2` instruction under `# Developer Preamble`, which the
   template states takes precedence. The combined prompt is what gets counted
   and budgeted; nothing is duplicated manually (CTX-001).
 * **Counting subtlety.** `context.tokenize()` calls

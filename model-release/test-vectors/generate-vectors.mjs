@@ -159,7 +159,7 @@ const file = {
   context: {
     appBuild: 100,
     runtimeBuildId: RUNTIME,
-    promptVersions: ['namu-text-1'],
+    promptVersions: ['namu-text-2'],
     licenseNoticeIds: ['tiny-aya-cc-by-nc-4.0-v1'],
     now: NOW,
     highestSequence: 5,

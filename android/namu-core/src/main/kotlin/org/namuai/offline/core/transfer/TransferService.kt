@@ -40,7 +40,7 @@ class ServiceConfig(
     val appBuild: Long,
     val runtimeBuildId: String,
     val internalBuild: Boolean,
-    val promptVersions: Set<String> = setOf("namu-text-1"),
+    val promptVersions: Set<String> = setOf("namu-text-2"),
     val licenseNoticeIds: Set<String> = setOf("tiny-aya-cc-by-nc-4.0-v1"),
 ) {
     val profile: CompatibilityProfile

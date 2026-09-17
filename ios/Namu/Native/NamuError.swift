@@ -48,7 +48,7 @@ struct NamuError: Error, Equatable {
 
 enum NamuConstants {
   static let modelId = "namu-aya-global"
-  static let understoodPromptVersions = ["namu-text-1"]
+  static let understoodPromptVersions = ["namu-text-2"]
   static let bundledLicenseNoticeIds = ["tiny-aya-cc-by-nc-4.0-v1"]
   static let gib: Int64 = 1 << 30
   static let mib: Int64 = 1 << 20

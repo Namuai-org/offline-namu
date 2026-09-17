@@ -19,7 +19,7 @@ them. All byte counts are JSON numbers (exact integers below 2^53).
 | Bundled descriptor | `assets/namu/initial-descriptor.json` | bundle `initial-descriptor.json` |
 | Bundled known-bad list | `assets/namu/known-bad.json` | bundle `known-bad.json` |
 | Runtime build ID | `BuildConfig.RUNTIME_BUILD_ID` | Info.plist `NamuRuntimeBuildId` |
-| Understood prompt versions | `["namu-text-1"]` constant | same |
+| Understood prompt versions | `["namu-text-2"]` constant | same |
 | Bundled licence notice IDs | `["tiny-aya-cc-by-nc-4.0-v1"]` constant | same |
 
 `MODEL_ORIGIN` is `https://<distribution-domain>` with no trailing slash.

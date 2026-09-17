@@ -83,3 +83,4 @@ android/app/src/main/assets/namu/
 ios/Namu/NamuConfig/*.json
 *.pem
 ios/.llama-sim/
+model-release/desktop-smoke/.build/

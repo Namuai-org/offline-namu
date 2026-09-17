@@ -66,7 +66,7 @@ final class DescriptorVerifierTests: XCTestCase {
       "sha256": TestSupport.sha("a"), "upstream_repo": "dev/fixture",
       "upstream_revision": String(repeating: "0", count: 40), "upstream_filename": "fixture.gguf",
       "architecture": "llama", "quantization": "F16", "runtime_build_ids": ["llamarn-0.12.9-b10256"],
-      "min_app_build": 1, "max_app_build": 10, "prompt_version": "namu-text-1",
+      "min_app_build": 1, "max_app_build": 10, "prompt_version": "namu-text-2",
       "license_notice_id": "tiny-aya-cc-by-nc-4.0-v1", "issued_at": "2026-09-01T00:00:00Z",
       "expires_at": "2026-12-01T00:00:00Z",
     ]

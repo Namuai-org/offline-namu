@@ -136,7 +136,7 @@ describe('development bundle tools', () => {
     assert.ok(fs.readFileSync(path.join(out, 'serve/releases/stable.json')).equals(envelope));
 
     const ctx = {
-      keys, source: 'bundled', appBuild: 1, runtimeBuildId: RUNTIME, promptVersions: ['namu-text-1'],
+      keys, source: 'bundled', appBuild: 1, runtimeBuildId: RUNTIME, promptVersions: ['namu-text-2'],
       licenseNoticeIds: ['tiny-aya-cc-by-nc-4.0-v1'], nowMs: Date.now(), knownBad: [],
     };
     // Internal fixture profile accepts it ...

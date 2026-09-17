@@ -2,7 +2,7 @@
 // Namu language-quality evaluation aggregator (EVAL-002 release gate, EVAL-004 report identity).
 // Dependency-free; Node >= 18.
 //
-//   node benchmarks/eval/aggregate.mjs --artifact-digest <sha256> [--prompt-version namu-text-1]
+//   node benchmarks/eval/aggregate.mjs --artifact-digest <sha256> [--prompt-version namu-text-2]
 //        [--runtime-build llamarn-0.12.9-b10256] [--set path/to/namu-eval-v1.jsonl] scores-a.csv scores-b.csv ...
 //   node benchmarks/eval/aggregate.mjs --self-test
 //   node benchmarks/eval/aggregate.mjs --write-template [path/to/scoring-template.csv]
@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DEFAULT_SET = join(HERE, 'namu-eval-v1.jsonl');
-const DEFAULT_PROMPT_VERSION = 'namu-text-1';
+const DEFAULT_PROMPT_VERSION = 'namu-text-2';
 const DEFAULT_RUNTIME_BUILD = 'llamarn-0.12.9-b10256';
 
 export const COLUMNS = [

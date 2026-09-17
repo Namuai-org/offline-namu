@@ -21,7 +21,7 @@ import {parseArgs} from 'node:util';
 
 export const RELEASE_FAMILY = 'aya-global-q4km';
 export const MODEL_ID = 'namu-aya-global';
-export const PROMPT_VERSION = 'namu-text-1';
+export const PROMPT_VERSION = 'namu-text-2';
 export const LICENSE_NOTICE_ID = 'tiny-aya-cc-by-nc-4.0-v1';
 
 export function buildPayload({lock, sequence, artifactVersion, runtimeBuildIds,

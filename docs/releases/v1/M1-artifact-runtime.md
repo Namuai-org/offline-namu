@@ -78,15 +78,19 @@ Findings from that run (all fixed in the same change unless noted):
 7. Model behaviour, not fixed here: after a French turn, an English request was
    answered in French although the system prompt says to match the latest
    message. Belongs to the LANG evaluation (M7).
-8. Asked who it is, the model answers "I'm Aya, a language model built by
-   Cohere" — consistent with PRD-006 attribution, but the owner should decide
-   whether the system prompt should introduce it as Namu.
+8. Asked who it is, the model answered "I'm Aya, a language model built by
+   Cohere" (8 of 8 samples) because the template's default preamble says so.
+   Fixed by the owner-approved `namu-text-2` instruction (PA-006): "Namu" in 33
+   of 35 samples and "Aya" in none, measured with
+   `model-release/desktop-smoke/identity-probe.mjs` on llama.cpp b10256.
 
 **Not done — required evidence for this milestone**
 * No physical Android phone or iPhone has run the app; every number above is
   from a simulator on a laptop CPU. Metal (`n_gpu_layers = 99`) has never been
   initialised by this app.
-* Desktop reference render with llama.cpp b10256 (MDL-006) and the
-  `getFormattedChat` comparison have not been run.
+* llama.cpp b10256 is now built locally (`model-release/desktop-smoke/.build/`,
+  git-ignored; commit `6c8dcaa7ae41fa9f4aa2b3b68ee82cb8b2a03632`) and was used
+  for the identity probe, but the full MDL-006 smoke run and the
+  `getFormattedChat` reference comparison have not been run.
 * Cancel acknowledgement P95, `clearCache(true)` cost and NFR timings need the
   device matrix.

@@ -198,7 +198,7 @@ describe('desktop smoke tooling', () => {
 
   test('outputs.md lists every case and its failures', () => {
     const md = renderOutputsMarkdown({
-      runtime: {build_info: 'b10256-test'}, artifact: {sha256: 'a'.repeat(64)}, prompt_version: 'namu-text-1',
+      runtime: {build_info: 'b10256-test'}, artifact: {sha256: 'a'.repeat(64)}, prompt_version: 'namu-text-2',
       cases: [
         {id: 'ha-explain', language: 'ha', problems: [], finish_reason: 'stop', completion_tokens: 12,
           transcript: [{role: 'user', content: 'Tambaya'}, {role: 'assistant', content: 'Amsa'}]},
@@ -290,7 +290,7 @@ process.on('SIGTERM', () => process.exit(0));
 
     const templates = JSON.parse(fs.readFileSync(path.join(out, 'template-fixtures.json'), 'utf8'));
     assert.equal(templates.fixtures.length, 4);
-    assert.ok(templates.fixtures[1].rendered_prompt.includes('You are Namu'));
+    assert.ok(templates.fixtures[1].rendered_prompt.includes('your name is Namu'));
     assert.ok(fs.existsSync(path.join(out, 'artifact-fixture.json')));
     assert.match(fs.readFileSync(path.join(out, 'outputs.md'), 'utf8'), /## ha-memory \(ha\) — mechanical checks passed/);
   });

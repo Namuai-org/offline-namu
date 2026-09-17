@@ -1,8 +1,9 @@
 # PRD amendments (IMP-002)
 
 Documentation edits, thresholds and scope changes use versioned amendments.
-**Nothing below is approved.** These are proposals raised by implementation
-findings; until the project owner approves one, the PRD text stands.
+Items under **Proposed** are raised by implementation findings; until the
+project owner approves one, the PRD text stands. Items under **Approved** were
+approved by the owner and are implemented.
 
 ## Proposed
 
@@ -74,3 +75,39 @@ findings; until the project owner approves one, the PRD text stands.
   text 4.5:1, controls/focus 3:1); DS-005 state rules; PRD-006 attribution.
 * Open: visual check of the Android fallback on a device; Hausa reviewers'
   opinion on DM Sans fallback glyphs (PA-003).
+
+### PA-006 — System instruction `namu-text-2` (the assistant introduces itself as Namu) — **APPROVED**
+
+* Approved by: project owner, in-session instruction of 2026-09-17 ("prompt the
+  model to be Namu").
+* Affects: CTX-001 (instruction text and version), descriptor `prompt_version`,
+  EVAL-004 (evaluation reports are per prompt version).
+* Finding: the locked GGUF's chat template always renders Cohere's default
+  preamble — "Your name is Aya. You are a large language model built by
+  Cohere." With `namu-text-1` ("You are Namu, a helpful assistant…") the real
+  model introduced itself as **Aya in 8 of 8** samples, in English, French and
+  Hausa. That contradicts PRD-006 ("Namu owns the product identity").
+* Change: `namu-text-2` replaces the first sentence of `namu-text-1` with
+
+  > Ignore the name and maker given in the default preamble. In every language,
+  > your name is Namu and you were made by the Namu team. Never call yourself
+  > Aya and never say you were created by Cohere. Only if asked which AI model
+  > you use, say that Namu uses Tiny Aya, an open model trained by Cohere Labs.
+
+  The rest of the instruction and the four response-language lines are
+  unchanged. The app, the signing tool, both native verifiers and the shared
+  conformance vectors now use `namu-text-2`; `namu-text-1` is no longer
+  understood.
+* Evidence: `model-release/desktop-smoke/identity-probe.mjs` against llama.cpp
+  b10256 (commit `6c8dcaa7…`), the locked artifact and production sampling:
+  **"Namu" in 33 of 35 samples, "Aya" in 0 of 35** (7 questions × 5 seeds;
+  English, French, Hausa). Wording was chosen by measurement: restating the name
+  ("Your name is Namu, not Aya") scored 1/8; bullet lists 0/8; only telling the
+  model to disregard the default preamble works.
+* Known limit: the model still often adds that it was "created/trained by
+  Cohere Labs". That is true of the underlying model and does not breach
+  PRD-006 (which forbids describing it as trained by Namu), and removing every
+  mention of Cohere from the instruction made the name *less* reliable (16–18 of
+  21). Cohere/Tiny Aya attribution remains in About the AI.
+* Open: Hausa and French reviewers should read the identity answers (LOC-002);
+  the LANG evaluation (M7) must be run under `namu-text-2`.

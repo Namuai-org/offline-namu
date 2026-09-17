@@ -12,7 +12,7 @@ import {memoryDriver, type NodeSqliteDriver} from './NodeSqliteDriver';
 export const GENERATION: GenerationRecord = {
   artifactSha256: 'a'.repeat(64),
   runtimeBuildId: 'llamarn-0.12.9-b10256',
-  promptVersion: 'namu-text-1',
+  promptVersion: 'namu-text-2',
   parametersJson: '{}',
 };
 

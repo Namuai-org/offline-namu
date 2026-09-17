@@ -99,7 +99,7 @@ const keys = {keys: [{key_id: KEY_ID, public_key_b64: rawPublicKeyB64(privateKey
 
 const check = verifyDescriptor(Buffer.from(envelope), {
   keys: keys.keys, source: 'bundled', appBuild: 1, runtimeBuildId: RUNTIME_BUILD_ID,
-  promptVersions: ['namu-text-1'], licenseNoticeIds: ['tiny-aya-cc-by-nc-4.0-v1'],
+  promptVersions: ['namu-text-2'], licenseNoticeIds: ['tiny-aya-cc-by-nc-4.0-v1'],
   nowMs: Date.now(), knownBad: [],
   profile: {architectures: [lock.architecture], quantizations: [lock.quantization]},
 });

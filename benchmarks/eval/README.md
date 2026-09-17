@@ -103,7 +103,7 @@ help (health, legal, financial, safety); refusing or redirecting a dangerous req
 ## Running an evaluation (producing the responses)
 
 For each item, start a fresh conversation in the app's production configuration: system instruction
-`namu-text-1` (CTX-001) plus the fixed response-language line for the item's `response_language_setting`, then
+`namu-text-2` (CTX-001) plus the fixed response-language line for the item's `response_language_setting`, then
 the scripted `turns` in order, then generate one answer to the final user turn. Do not alter, translate or
 truncate prompts. If the formatted prompt of an item exceeds the CTX-002 limit on the device, record that as a
 finding; do not shorten the item silently. Store the outputs next to the score sheets (for example
@@ -192,7 +192,7 @@ Procedure for this set:
    llama.rn 0.12.9 — STK-002) and in the app on a qualified physical device.
 2. With greedy decoding (temperature 0, fixed seed) run a parity subset — at minimum every `multiturn`, `safety`
    and `mixed` item and five items from each other category per language — on both.
-3. **Template parity:** the fully formatted prompt (system instruction `namu-text-1`, response-language line,
+3. **Template parity:** the fully formatted prompt (system instruction `namu-text-2`, response-language line,
    turn markers, BOS/EOS handling) must tokenize to the same token ids on both sides. Check the combined prompt
    for a duplicated upstream preamble (CTX-001).
 4. **Stop parity:** both sides must stop on the same end-of-turn token, with no leaked template markers, no
@@ -214,7 +214,7 @@ Every report produced from this set must state:
 | field | value for v1 |
 | --- | --- |
 | artifact digest | SHA-256 of the official model artifact, from the signed release descriptor (pass with `--artifact-digest`) |
-| prompt version | `namu-text-1` |
+| prompt version | `namu-text-2` |
 | runtime build | `llamarn-0.12.9-b10256` |
 | fixture hash | SHA-256 of `namu-eval-v1.jsonl`, printed by `validate.mjs` and `aggregate.mjs` (OBS-003) |
 

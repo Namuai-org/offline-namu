@@ -1,5 +1,5 @@
 import {titleFromFirstMessage, validateRename} from '../../src/domain/chat/title';
-import {buildSystemPrompt} from '../../src/domain/chat/systemPrompt';
+import {buildSystemPrompt, PROMPT_VERSION} from '../../src/domain/chat/systemPrompt';
 import {assembleMessages, fitPrompt} from '../../src/domain/chat/promptBudget';
 import {codePointLength, splitGraphemes, truncateGraphemes} from '../../src/domain/text/graphemes';
 import {approximateTokens} from '../../src/infrastructure/inference/fake/FakeInferenceEngine';
@@ -41,7 +41,17 @@ describe('system prompt (CTX-001)', () => {
     expect(buildSystemPrompt('ha').endsWith('\nResponse language: Hausa.')).toBe(true);
     expect(buildSystemPrompt('fr').endsWith('\nResponse language: French.')).toBe(true);
     expect(buildSystemPrompt('en').endsWith('\nResponse language: English.')).toBe(true);
-    expect(buildSystemPrompt('en').startsWith('You are Namu, a helpful assistant running on this device.')).toBe(true);
+  });
+
+  it('overrides the identity in the template\'s default preamble (PRD-006, PA-006)', () => {
+    const prompt = buildSystemPrompt('en');
+    expect(PROMPT_VERSION).toBe('namu-text-2');
+    expect(prompt.startsWith('Ignore the name and maker given in the default preamble.')).toBe(true);
+    expect(prompt).toContain('your name is Namu');
+    expect(prompt).toContain('Never call yourself Aya');
+    // Attribution stays truthful: the model is Cohere's, never "trained by Namu".
+    expect(prompt).toContain('Tiny Aya, an open model trained by Cohere Labs');
+    expect(prompt).not.toMatch(/trained by (the )?Namu/i);
   });
 });
 

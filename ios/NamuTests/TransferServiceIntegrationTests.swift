@@ -52,7 +52,7 @@ final class TransferServiceIntegrationTests: XCTestCase {
       "path": path(sha), "bytes": artifact.count, "sha256": sha, "upstream_repo": "dev/fixture",
       "upstream_revision": String(repeating: "0", count: 40), "upstream_filename": "fixture.gguf",
       "architecture": architecture, "quantization": "F16", "runtime_build_ids": ["llamarn-0.12.9-b10256"],
-      "min_app_build": 1, "max_app_build": 999_999, "prompt_version": "namu-text-1",
+      "min_app_build": 1, "max_app_build": 999_999, "prompt_version": "namu-text-2",
       "license_notice_id": "tiny-aya-cc-by-nc-4.0-v1",
       "issued_at": DescriptorVerifier.formatTimestamp(ms: namuNowMs() - 3_600_000),
       "expires_at": DescriptorVerifier.formatTimestamp(ms: namuNowMs() + 30 * 24 * 3_600_000),

@@ -30,7 +30,7 @@ class DescriptorVerifierTest {
         profile: CompatibilityProfile = CompatibilityProfile.PRODUCTION,
         keys: List<ReleaseKey> = TrustBundle.parseKeys(signer.keysJson()),
     ) = VerifyContext(
-        keys, source, 100, Fixtures.RUNTIME, setOf("namu-text-1"), setOf("tiny-aya-cc-by-nc-4.0-v1"),
+        keys, source, 100, Fixtures.RUNTIME, setOf("namu-text-2"), setOf("tiny-aya-cc-by-nc-4.0-v1"),
         now, highest, pinned, emptySet(), profile,
     )
 

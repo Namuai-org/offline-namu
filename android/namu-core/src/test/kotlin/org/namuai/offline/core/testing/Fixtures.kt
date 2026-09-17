@@ -61,7 +61,7 @@ object Fixtures {
             "runtime_build_ids" to listOf(RUNTIME),
             "min_app_build" to 1L,
             "max_app_build" to 999999L,
-            "prompt_version" to "namu-text-1",
+            "prompt_version" to "namu-text-2",
             "license_notice_id" to "tiny-aya-cc-by-nc-4.0-v1",
             "issued_at" to issuedAt,
             "expires_at" to expiresAt,

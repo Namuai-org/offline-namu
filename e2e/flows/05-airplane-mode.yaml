@@ -1,0 +1,35 @@
+# T02 / NFR-012: fully installed, airplane mode, cold launch.
+# Android: airplane mode is toggled by the flow. iOS: enable airplane mode by
+# hand before starting (Maestro cannot toggle it on iOS).
+appId: org.namuai.offline.internal
+---
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+- stopApp
+- launchApp
+- assertVisible:
+    id: "chat-screen"
+- assertNotVisible:
+    id: "chat-needs-setup"
+- tapOn:
+    id: "chat-new"
+- tapOn:
+    id: "composer-input"
+- inputText: "Sannu, ina kwana?"
+- tapOn:
+    id: "composer-send"
+- extendedWaitUntil:
+    visible:
+      id: "try-again"
+    timeout: 240000
+- tapOn:
+    id: "tab-conversations"
+- assertVisible: ".*Sannu.*"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled

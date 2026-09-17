@@ -1,0 +1,38 @@
+appId: org.namuai.offline.internal
+---
+- launchApp
+- tapOn:
+    id: "tab-conversations"
+- assertVisible:
+    id: "conversations-screen"
+- tapOn:
+    id: "conversation-search"
+- inputText: "sky"
+- assertVisible: ".*sky.*"
+- eraseText
+- tapOn:
+    id: "conversation-menu-.*"
+    index: 0
+- tapOn:
+    id: "menu-rename"
+- eraseText
+- inputText: "Sky colours"
+- tapOn:
+    id: "rename-save"
+- assertVisible: "Sky colours"
+- tapOn:
+    id: "conversation-menu-.*"
+    index: 0
+- tapOn:
+    id: "menu-export"
+- assertVisible:
+    id: "export-warning"
+- tapOn: "Cancel"
+- tapOn:
+    id: "conversation-menu-.*"
+    index: 0
+- tapOn:
+    id: "menu-delete"
+- tapOn:
+    id: "delete-confirm"
+- assertNotVisible: "Sky colours"

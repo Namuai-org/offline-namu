@@ -1,97 +1,99 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Namu Offline v1
 
-# Getting Started
+An offline assistant for Android and iOS. After a one-time model installation
+the app chats, keeps history, searches, exports and deletes data with **no
+network access**. One assistant, one model: Cohere Labs *Tiny Aya Global*
+(official Q4_K_M GGUF) running on-device through llama.rn 0.12.9.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+The product specification is [`docs/PRD.md`](docs/PRD.md). It is the source of
+truth; where code and PRD disagree, fix the code or amend the PRD (IMP-002).
 
-## Step 1: Start Metro
+> **Status — read this first.** The code base implements milestones M0–M6 as
+> far as they can be built and tested on a development machine. It has **not**
+> been run on a physical phone, the model artifact has **not** been acquired
+> (PRD-007 rights gate), no infrastructure exists, and the Hausa/French strings
+> are unreviewed drafts. The honest per-milestone state is in
+> [`docs/releases/v1/`](docs/releases/v1/README.md).
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Layout (PRD section 4)
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+| Path | Responsibility |
+|---|---|
+| `src/app/` | Composition root, navigation, lifecycle wiring |
+| `src/features/` | Screens S01–S10 (`setup`, `chat`, `conversations`, `settings`, `about`) |
+| `src/domain/chat/` | `ChatSessionController`, prompt budgeting, system prompt, titles |
+| `src/domain/inference/` | Engine contract, production configuration, ownership lock, typed failures |
+| `src/domain/model/` | Install controller, eligibility rules, transfer snapshot types |
+| `src/data/` | SQLite schema, checksum-locked migrations, repositories, FTS search, diagnostics ring |
+| `src/infrastructure/inference/` | **Only** importer of llama.rn; runtime fixture; control-token guard |
+| `src/infrastructure/platform/` | Typed adapters over the native TurboModules (`specs/` are the codegen contracts) |
+| `src/infrastructure/db/` | op-sqlite driver |
+| `src/design/` | Tokens, Namu components, safe Markdown renderer, icons, fonts |
+| `src/locales/` | `en` / `fr` / `ha` JSON, consistency check, review status |
+| `android/` | Kotlin services; `android/namu-core` is a pure-JVM module with the transfer protocol and its tests |
+| `ios/` | Swift services, Objective-C++ TurboModule shims, XCTest target |
+| `model-release/` | Artifact acquisition, signed descriptor tooling, conformance vectors, dev bundle, publication |
+| `infra/` | Terraform: private S3 + CloudFront (OAC), staging and production |
+| `tools/` | Fault-injection server, font/icon builders, notices/SBOM, licence vendoring |
+| `tests/`, `e2e/`, `benchmarks/` | Jest suites, Maestro journeys, device harness and language evaluation set |
+| `docs/` | PRD, toolchain lock, native contract, runtime contract, decisions, runbooks, release evidence |
 
-```sh
-# Using npm
-npm start
+Boundaries are enforced by `npm run check:arch` (ARC-001, SEC-003): components
+never import llama.rn, run SQL, build model URLs or touch native paths, and no
+JavaScript performs network I/O — the only network code in the product is the
+native transfer service, used on explicit user actions.
 
-# OR using Yarn
-yarn start
+## Working on it
+
+```bash
+npm ci
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```bash
+npm run verify
 ```
 
-### iOS
+`verify` runs TypeScript (strict), ESLint, the locale check, the DS-004
+contrast check, the architecture boundary check and Jest. Release tooling
+tests:
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
-```sh
-bundle install
+```bash
+node --test model-release/ tools/fault-server/
 ```
 
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
+```bash
+cd android/namu-core && ./gradlew test
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### Running an internal build
 
-```sh
-# Using npm
+Internal builds (`org.namuai.offline.internal`) trust a locally generated
+**development** signing key and talk to the local fault server. Simulators use
+a scripted engine (functional journeys only, DEV-001); real devices load the
+real model.
+
+```bash
+node model-release/dev/make-dev-bundle.mjs --model <path/to/model.gguf>
+```
+
+```bash
+node tools/fault-server/server.mjs --root model-release/dev/out/serve --port 8787
+```
+
+```bash
+cd ios && pod install
+```
+
+```bash
 npm run ios
-
-# OR using Yarn
-yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Release builds refuse a non-HTTPS origin, a missing trust bundle, and any
+verification key whose ID starts with `dev-`.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Things this project will not do
 
-## Step 3: Modify your app
-
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+No accounts, cloud inference, telemetry, model catalog, runtime or sampling
+settings, voice, images, attachments, browsing, RAG or tools (PRD-002,
+PRD-005). Do not add placeholder screens for them, and do not substitute
+another model without a revised PRD (PRD-007).

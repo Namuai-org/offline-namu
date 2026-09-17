@@ -1,0 +1,28 @@
+appId: org.namuai.offline.internal
+---
+- launchApp
+- assertVisible:
+    id: "chat-screen"
+- tapOn:
+    id: "suggest-explain"
+- assertVisible:
+    id: "composer-input"
+- inputText: "why the sky is blue"
+- tapOn:
+    id: "composer-send"
+- assertVisible:
+    id: "composer-stop"
+- tapOn:
+    id: "composer-stop"
+- extendedWaitUntil:
+    visible:
+      id: "composer-send"
+    timeout: 15000
+- assertVisible: "Stopped"
+- tapOn:
+    id: "try-again"
+- extendedWaitUntil:
+    visible:
+      id: "try-again"
+    timeout: 180000
+- assertVisible: ".*earlier answer.*"

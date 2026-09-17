@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "description": "Namu model release tooling. No dependencies. \"main\" exists only so that `node --test model-release/` works on Node 22+ (see run-tests.mjs).",
+  "main": "run-tests.mjs"
+}

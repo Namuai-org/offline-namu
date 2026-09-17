@@ -16,6 +16,7 @@
 // re-serializes them afterwards (SIG-002).
 import crypto from 'node:crypto';
 import fs from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {parseArgs} from 'node:util';
 
 export const RELEASE_FAMILY = 'aya-global-q4km';
@@ -126,6 +127,9 @@ function main() {
   console.log(`public key (b64):   ${rawPublicKeyB64(privateKey)}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Compare real paths, not URL strings: a checkout path containing a space or
+// a non-ASCII character is percent-encoded in import.meta.url, and the tool
+// would otherwise exit 0 without signing anything.
+if (process.argv[1] && fs.realpathSync(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main();
 }

@@ -1,0 +1,237 @@
+# Pull-request CI (REL-001, REL-002). Needs no secrets and never touches AWS,
+# the real model, signing keys or store credentials.
+#
+# NOT EXECUTED by its author: GitHub Actions cannot be run in the authoring
+# environment. Every third-party action is pinned to a full commit SHA that was
+# resolved with `git ls-remote` on 2026-09-17, and the inputs used were checked
+# against each action's action.yml at that commit. To update a pin:
+#   git ls-remote https://github.com/<owner>/<repo>.git 'refs/tags/<tag>' 'refs/tags/<tag>^{}'
+# and use the peeled (^{}) SHA when one is printed.
+#
+# Node is pinned to the version on the macos-26 runner image. Align NODE_VERSION
+# and XCODE_VERSION with toolchain.lock.md (STK-001) once that file exists.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24.20.0'
+  JAVA_VERSION: '17'
+  XCODE_VERSION: '26.5'
+  TERRAFORM_VERSION: '1.16.3'
+
+jobs:
+  js:
+    name: TypeScript, lint, locale/contrast/architecture checks, tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run check:locales
+      - run: npm run check:contrast
+      - run: npm run check:arch
+      - run: npm test
+      # Release tooling and the fault server: node:test, no dependencies.
+      # Glob form on purpose: it works on every Node >= 21 without an entry point.
+      - name: node --test (model-release, fault server)
+        run: node --test "model-release/**/*.test.mjs" "tools/fault-server/**/*.test.mjs"
+      # The committed SBOM must match package-lock.json (REL-002). The notices
+      # file is regenerated in the release workflow on macOS, because optional
+      # platform packages (and therefore their licence texts) differ per OS.
+      - name: SBOM is up to date
+        run: node tools/release/generate-sbom.mjs --check
+
+  audit:
+    name: npm audit (production dependencies)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      # Works from package-lock.json alone; nothing is installed.
+      - run: npm audit --omit=dev --audit-level=high
+
+  android-core:
+    name: Android core (pure Kotlin/JVM tests)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: gradle/actions/wrapper-validation@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+        with:
+          min-wrapper-count: 2
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+          cache-dependency-path: |
+            android/namu-core/*.gradle.kts
+            android/namu-core/gradle/wrapper/gradle-wrapper.properties
+      - name: namu-core tests
+        working-directory: android/namu-core
+        run: ./gradlew test --no-daemon --stacktrace
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-core-test-reports
+          path: android/namu-core/build/reports/tests/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  android:
+    name: Android debug build + 16 KB alignment
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+      # The Android SDK, NDK and CMake come from the runner image (ANDROID_HOME).
+      - run: npm ci
+      # Internal builds need the three bundled trust files. They are generated
+      # from a synthesized structural GGUF and a throwaway dev- key: no real
+      # model and no secret is involved (REL-001).
+      - name: Development trust bundle from a synthesized fixture
+        run: |
+          node model-release/dev/make-fixture-gguf.mjs --out "$RUNNER_TEMP/fixture.gguf"
+          node model-release/dev/make-dev-bundle.mjs --model "$RUNNER_TEMP/fixture.gguf" --quantization F32
+      - name: assembleDebug (release ABI only)
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a
+      - name: 16 KB page alignment (DEV-005, T28)
+        run: |
+          if [ -x android/scripts/check-16kb-alignment.sh ]; then
+            apk="$(find android/app/build/outputs/apk/debug -name '*.apk' | head -n 1)"
+            test -n "$apk"
+            android/scripts/check-16kb-alignment.sh "$apk"
+          else
+            echo "::warning::android/scripts/check-16kb-alignment.sh is not present; 16 KB alignment was NOT checked"
+          fi
+      - name: Upload debug APK
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  ios:
+    name: iOS simulator build + native tests
+    runs-on: macos-26
+    timeout-minutes: 90
+    env:
+      LANG: en_US.UTF-8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - uses: ruby/setup-ruby@a0102e0972be65f351c307e2d64b9314a57c8073 # v1.324.0
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+      - run: npm ci
+      - name: Development trust bundle from a synthesized fixture
+        run: |
+          node model-release/dev/make-fixture-gguf.mjs --out "$RUNNER_TEMP/fixture.gguf"
+          node model-release/dev/make-dev-bundle.mjs --model "$RUNNER_TEMP/fixture.gguf" --quantization F32
+      - name: pod install
+        working-directory: ios
+        run: bundle exec pod install
+      - name: Pick an available iPhone simulator
+        run: |
+          udid="$(xcrun simctl list devices available --json | python3 -c '
+          import json, sys
+          runtimes = json.load(sys.stdin)["devices"]
+          def version(key):
+              return tuple(int(p) for p in key.rsplit("iOS-", 1)[1].split("-"))
+          ios = sorted((k for k in runtimes if "SimRuntime.iOS-" in k), key=version, reverse=True)
+          for key in ios:
+              for device in runtimes[key]:
+                  if device["name"].startswith("iPhone"):
+                      print(device["udid"])
+                      sys.exit(0)
+          sys.exit("no available iPhone simulator")
+          ')"
+          echo "SIMULATOR_UDID=$udid" >> "$GITHUB_ENV"
+          xcrun simctl list devices available | grep "$udid"
+      - name: xcodebuild build-for-testing
+        run: |
+          set -o pipefail
+          xcodebuild build-for-testing \
+            -workspace ios/Namu.xcworkspace -scheme Namu -configuration Debug \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO | tail -n 400
+      - name: xcodebuild test-without-building
+        run: |
+          set -o pipefail
+          xcodebuild test-without-building \
+            -workspace ios/Namu.xcworkspace -scheme Namu \
+            -destination "platform=iOS Simulator,id=$SIMULATOR_UDID" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/NamuTests.xcresult" | tail -n 400
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-test-results
+          path: ${{ runner.temp }}/NamuTests.xcresult
+          if-no-files-found: ignore
+          retention-days: 7
+
+  infra:
+    name: Terraform fmt + validate (no credentials, no state)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+      - run: infra/scripts/check.sh

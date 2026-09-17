@@ -1,0 +1,38 @@
+appId: org.namuai.offline.internal
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: "onboarding-language"
+- assertVisible: "Hausa"
+- assertVisible: "Français"
+- assertVisible: "English"
+- tapOn:
+    id: "language-en"
+- tapOn:
+    id: "onboarding-continue"
+- assertVisible:
+    id: "onboarding-intro"
+- tapOn:
+    id: "onboarding-start"
+- assertVisible:
+    id: "setup-device"
+- assertVisible:
+    id: "setup-size"
+- tapOn:
+    id: "setup-download"
+- assertVisible:
+    id: "setup-progress"
+- tapOn:
+    id: "setup-pause"
+- assertVisible: "Paused"
+- tapOn:
+    id: "setup-resume"
+- extendedWaitUntil:
+    visible:
+      id: "setup-done"
+    timeout: 1800000
+- tapOn:
+    id: "setup-done"
+- assertVisible:
+    id: "chat-empty"

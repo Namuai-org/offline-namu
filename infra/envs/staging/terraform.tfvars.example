@@ -1,0 +1,21 @@
+# Copy to terraform.tfvars and fill in. terraform.tfvars is ignored by git.
+# No value here may be guessed: each one comes from the account owner.
+#
+# aws_account_id           = "<12-digit account id for staging>"
+# name_prefix              = "<3-16 lowercase characters>"
+# publisher_principal_arns = ["<IAM role or user ARN of the release operator>"]
+# alert_email              = "<operations mailbox that will confirm the SNS subscription>"
+#
+# Bytes per day that should page someone. Example reasoning, not a value:
+# planned installs per day x exact artifact bytes (model.lock.json) x retry margin.
+# alarm_bytes_downloaded_per_day = <number>
+#
+# From measured eu-west-1 / target-region delivery pricing (DST-005).
+# monthly_budget_limit_usd = <number>
+#
+# Optional:
+# log_reader_principal_arns = ["<IAM role ARN allowed to read access logs>"]
+# price_class               = "PriceClass_All"
+# aliases                   = ["<custom domain>"]
+# acm_certificate_arn       = "<ACM certificate ARN in us-east-1>"
+# create_budget             = true

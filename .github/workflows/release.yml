@@ -1,0 +1,248 @@
+# Release workflow SKELETON (REL-002, REL-003, REL-004). Manual dispatch only.
+#
+# NOT EXECUTED by its author. It builds from a clean checkout with `npm ci`,
+# regenerates the SBOM and third-party notices, writes the REL-003 build
+# record, uploads everything as artifacts and retains native symbols.
+#
+# Steps marked TODO-by-owner need things that do not exist yet and must never
+# be invented here: store signing credentials, the production trust files
+# (release-keys.json, initial-descriptor.json, known-bad.json), and a protected
+# GitHub environment. Until the owner completes them those steps FAIL CLOSED:
+# dispatching with store_build=true stops with an explicit error instead of
+# producing something that looks like a release.
+#
+# What never happens in this workflow: downloading the model, signing a
+# descriptor (the signing key stays in the protected release environment, see
+# docs/runbooks/signing-keys.md), publishing to AWS, or uploading to a store.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_build:
+        description: Integer app build number (versionCode / CFBundleVersion)
+        required: true
+        type: string
+      model_origin:
+        description: MODEL_ORIGIN, i.e. the production `terraform output model_origin` (https://...). Not a secret.
+        required: true
+        type: string
+      db_schema_version:
+        description: Highest chat DB migration version in this build
+        required: true
+        type: string
+      store_build:
+        description: Also build the store artifacts (requires the owner TODOs to be completed)
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24.20.0'
+  JAVA_VERSION: '17'
+  XCODE_VERSION: '26.5'
+
+jobs:
+  record:
+    name: Verify, SBOM, notices, REL-003 build record
+    # macOS because optional platform packages (and their licence texts) are
+    # only installed there; the committed notices file was generated on macOS.
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Inputs are well formed
+        env:
+          APP_BUILD: ${{ inputs.app_build }}
+          MODEL_ORIGIN: ${{ inputs.model_origin }}
+          DB_SCHEMA_VERSION: ${{ inputs.db_schema_version }}
+        run: |
+          [[ "$APP_BUILD" =~ ^[0-9]+$ ]] || { echo "app_build must be an integer"; exit 1; }
+          [[ "$DB_SCHEMA_VERSION" =~ ^[0-9]+$ ]] || { echo "db_schema_version must be an integer"; exit 1; }
+          [[ "$MODEL_ORIGIN" =~ ^https://[A-Za-z0-9.-]+$ ]] || { echo "model_origin must be https://<host> with no path"; exit 1; }
+          test -z "$(git status --porcelain)" || { echo "checkout is not clean"; exit 1; }
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: npm ci (clean install from the lockfile, REL-003)
+        run: npm ci
+      - run: npm run verify
+      - run: node --test "model-release/**/*.test.mjs" "tools/fault-server/**/*.test.mjs"
+      - run: npm audit --omit=dev --audit-level=high
+      - name: SBOM (CycloneDX 1.5) matches the lockfile
+        run: node tools/release/generate-sbom.mjs --check
+      - name: Third-party notices are current and nothing is flagged
+        run: |
+          node tools/release/generate-notices.mjs --check
+          node tools/release/generate-notices.mjs --out "$RUNNER_TEMP/THIRD_PARTY_NOTICES.md"
+      # TODO-by-owner: CocoaPods and Gradle dependency SBOMs/notices are not
+      # produced by tools/release/ (npm only). Add them before the first release.
+      - name: REL-003 build record
+        env:
+          APP_BUILD: ${{ inputs.app_build }}
+          DB_SCHEMA_VERSION: ${{ inputs.db_schema_version }}
+        run: |
+          # Evidence files (test results, language review, device list) and the
+          # signed descriptor are passed with --evidence/--descriptor once they
+          # exist under docs/releases/v1/. Without them the record lists them
+          # as missing; add --strict when they are expected to be complete.
+          node tools/release/build-record.mjs \
+            --app-build "$APP_BUILD" --db-schema-version "$DB_SCHEMA_VERSION" \
+            --out "$RUNNER_TEMP/build-record.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-record
+          path: |
+            ${{ runner.temp }}/build-record.json
+            ${{ runner.temp }}/THIRD_PARTY_NOTICES.md
+            docs/releases/v1/sbom/namu-npm.cdx.json
+          if-no-files-found: error
+          retention-days: 90
+
+  android:
+    name: Android App Bundle + unstripped symbols
+    if: ${{ inputs.store_build }}
+    needs: record
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    # TODO-by-owner: create a protected environment (required reviewers) and
+    # name it here, so that signing secrets are only available after approval:
+    # environment: <protected environment name>
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+      - run: npm ci
+      - name: TODO-by-owner — production trust files and upload keystore
+        run: |
+          # Required before this job can succeed (nothing here may be guessed):
+          #  1. write the PRODUCTION release-keys.json, initial-descriptor.json and
+          #     known-bad.json into android/app/src/main/assets/namu/ from the
+          #     protected environment (docs/runbooks/signing-keys.md). Release
+          #     builds must refuse dev- keys and a non-HTTPS origin.
+          #  2. provide the Play upload keystore and its passwords as environment
+          #     secrets and wire them into the release signingConfig.
+          #  3. delete this step.
+          echo "::error::Owner TODO not completed: production trust files and the upload keystore are not configured."
+          exit 1
+      - name: bundleRelease
+        working-directory: android
+        env:
+          MODEL_ORIGIN: ${{ inputs.model_origin }}
+        run: |
+          # NAMU_MODEL_ORIGIN is the property android/app/build.gradle reads.
+          # TODO-by-owner: versionCode is currently hard-coded there (1); wire it to
+          # the app_build input before the first store build so that it matches the
+          # descriptor's min_app_build/max_app_build range and the iOS build number.
+          ./gradlew bundleRelease --no-daemon --stacktrace \
+            -PreactNativeArchitectures=arm64-v8a \
+            -PNAMU_MODEL_ORIGIN="$MODEL_ORIGIN"
+      - name: 16 KB page alignment of the release artifact (DEV-005, T28)
+        run: |
+          test -x android/scripts/check-16kb-alignment.sh
+          android/scripts/check-16kb-alignment.sh "$(find android/app/build/outputs/bundle/release -name '*.aab' | head -n 1)"
+      - name: Artifact checksums (REL-002)
+        run: |
+          cd android/app/build/outputs
+          find . -type f \( -name '*.aab' -o -name 'mapping.txt' -o -name 'native-debug-symbols.zip' \) -print0 \
+            | sort -z | xargs -0 sha256sum > "$RUNNER_TEMP/android-artifact-checksums.txt"
+          cat "$RUNNER_TEMP/android-artifact-checksums.txt"
+      - name: Retain the bundle, R8 mapping and UNSTRIPPED native libraries
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: android-release-and-symbols
+          path: |
+            android/app/build/outputs/bundle/release/
+            android/app/build/outputs/mapping/release/
+            android/app/build/outputs/native-debug-symbols/release/
+            android/app/build/intermediates/merged_native_libs/release/
+            ${{ runner.temp }}/android-artifact-checksums.txt
+          if-no-files-found: error
+          retention-days: 90
+      # TODO-by-owner: artifacts expire after 90 days at most. Copy symbols and
+      # checksums to durable storage owned by Namu; upload to Play is a manual,
+      # owner-approved step and is deliberately not automated here (STK-004).
+
+  ios:
+    name: iOS archive + dSYMs
+    if: ${{ inputs.store_build }}
+    needs: record
+    runs-on: macos-26
+    timeout-minutes: 120
+    # TODO-by-owner: environment: <protected environment name>
+    env:
+      LANG: en_US.UTF-8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
+        with:
+          xcode-version: ${{ env.XCODE_VERSION }}
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: ruby/setup-ruby@a0102e0972be65f351c307e2d64b9314a57c8073 # v1.324.0
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+      - run: npm ci
+      - name: pod install (from the committed Podfile.lock)
+        working-directory: ios
+        run: bundle exec pod install --deployment
+      - name: TODO-by-owner — production trust files, signing certificate and profile
+        run: |
+          # Required before this job can succeed (nothing here may be guessed):
+          #  1. write the PRODUCTION release-keys.json, initial-descriptor.json and
+          #     known-bad.json into ios/Namu/NamuConfig/ from the protected
+          #     environment; ios/scripts/release_guards.sh must pass.
+          #  2. install the distribution certificate and provisioning profile (or
+          #     App Store Connect API key for automatic signing) from environment
+          #     secrets into a temporary keychain, and remove them afterwards.
+          #  3. delete this step.
+          echo "::error::Owner TODO not completed: production trust files and iOS signing are not configured."
+          exit 1
+      - name: xcodebuild archive
+        env:
+          MODEL_ORIGIN: ${{ inputs.model_origin }}
+          APP_BUILD: ${{ inputs.app_build }}
+        run: |
+          set -o pipefail
+          xcodebuild archive \
+            -workspace ios/Namu.xcworkspace -scheme Namu -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Namu.xcarchive" \
+            NAMU_MODEL_ORIGIN="$MODEL_ORIGIN" CURRENT_PROJECT_VERSION="$APP_BUILD" | tail -n 400
+      - name: Artifact checksums (REL-002)
+        run: |
+          cd "$RUNNER_TEMP/Namu.xcarchive"
+          find dSYMs Products -type f -print0 | sort -z | xargs -0 shasum -a 256 > "$RUNNER_TEMP/ios-artifact-checksums.txt"
+      - name: Retain the archive and dSYMs
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-archive-and-dsyms
+          path: |
+            ${{ runner.temp }}/Namu.xcarchive
+            ${{ runner.temp }}/ios-artifact-checksums.txt
+          if-no-files-found: error
+          retention-days: 90
+      # TODO-by-owner: export/upload to App Store Connect is a manual,
+      # owner-approved step and is deliberately not automated here. Copy dSYMs
+      # and checksums to durable storage owned by Namu.

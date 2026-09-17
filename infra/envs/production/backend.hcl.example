@@ -1,0 +1,9 @@
+# Copy to backend.hcl and fill in. backend.hcl is ignored by git.
+# The state bucket must already exist, be private, versioned and encrypted.
+# Use a different key (and ideally a different bucket/account) per environment.
+#
+# bucket       = "<existing private state bucket>"
+# key          = "namu/model-distribution/production/terraform.tfstate"
+# region       = "<region of the state bucket>"
+# encrypt      = true
+# use_lockfile = true

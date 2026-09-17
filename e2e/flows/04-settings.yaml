@@ -1,0 +1,50 @@
+appId: org.namuai.offline.internal
+---
+- launchApp
+- tapOn:
+    id: "tab-settings"
+- tapOn:
+    id: "settings-theme-dark"
+- tapOn:
+    id: "settings-language-fr"
+- assertVisible: "Réglages"
+- tapOn:
+    id: "settings-language-ha"
+- assertVisible: "Saituna"
+- tapOn:
+    id: "settings-language-en"
+- scrollUntilVisible:
+    element:
+      id: "settings-storage"
+- tapOn:
+    id: "settings-storage"
+- assertVisible:
+    id: "storage-status"
+- back
+- scrollUntilVisible:
+    element:
+      id: "settings-privacy"
+- tapOn:
+    id: "settings-privacy"
+- assertVisible:
+    id: "privacy-screen"
+- back
+- scrollUntilVisible:
+    element:
+      id: "settings-help"
+- tapOn:
+    id: "settings-help"
+- tapOn:
+    id: "help-topic-heat"
+- back
+- scrollUntilVisible:
+    element:
+      id: "settings-about"
+- tapOn:
+    id: "settings-about"
+- assertVisible: "Tiny Aya Global"
+- assertVisible: "Cohere Labs"
+- tapOn:
+    id: "about-license"
+- assertVisible:
+    id: "legal-screen"

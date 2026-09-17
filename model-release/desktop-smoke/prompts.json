@@ -1,0 +1,117 @@
+{
+  "prompts_schema": 1,
+  "note": "MDL-006 desktop smoke prompts. Mechanical checks only; a fluent reader must read the Hausa and French outputs (LOC-002, EVAL-002). The system text must equal src/domain/chat/systemPrompt.ts (namu-text-1); smoke.test.mjs checks that.",
+  "system": {
+    "prompt_version": "namu-text-1",
+    "text": "You are Namu, a helpful assistant running on this device. Give clear, useful answers in simple language. Reply in the language of the user's latest message unless the response-language instruction below specifies another language. You do not browse the internet, access current news, inspect the device, or perform external actions. Do not claim to have done those things. If you do not know, say so. Do not invent sources or present uncertain information as fact. For important health, legal, financial or safety questions, explain relevant uncertainty and encourage appropriate qualified help. Use short paragraphs and simple Markdown. Keep answers concise unless the user asks for detail.",
+    "response_language_line": "Response language: match the latest user message."
+  },
+  "single_turn": [
+    {
+      "id": "ha-explain",
+      "language": "ha",
+      "user": "Menene amfanin ruwa ga jikin ɗan adam? Ka bayyana a taƙaice."
+    },
+    {
+      "id": "ha-translate",
+      "language": "ha",
+      "user": "Fassara wannan jimla zuwa Turanci: Ina son in koyi yadda ake noman masara."
+    },
+    {
+      "id": "fr-explain",
+      "language": "fr",
+      "user": "Explique simplement, en trois phrases, pourquoi le ciel est bleu."
+    },
+    {
+      "id": "fr-summarize",
+      "language": "fr",
+      "user": "Résume ce texte en une phrase : « Le mil est une céréale cultivée dans les régions sèches. Il résiste à la chaleur, demande peu d'eau et nourrit des millions de personnes au Sahel. »"
+    },
+    {
+      "id": "en-explain",
+      "language": "en",
+      "user": "Explain in three short sentences how a vaccine prepares the body to fight a disease."
+    },
+    {
+      "id": "en-limits",
+      "language": "en",
+      "user": "What is today's top news headline?",
+      "reviewer_note": "Expected: says it cannot browse or access current news (CTX-001). Judged by the reviewer, not mechanically."
+    }
+  ],
+  "multi_turn": [
+    {
+      "id": "en-memory",
+      "language": "en",
+      "turns": [
+        "My name is Amina and I grow millet. Please remember that.",
+        "Which crop did I say I grow? Answer with one word."
+      ],
+      "final_answer_must_contain": ["millet"]
+    },
+    {
+      "id": "fr-memory",
+      "language": "fr",
+      "turns": [
+        "Je m'appelle Moussa et j'habite à Niamey.",
+        "Dans quelle ville est-ce que j'habite ? Réponds en un mot."
+      ],
+      "final_answer_must_contain": ["niamey"]
+    },
+    {
+      "id": "ha-memory",
+      "language": "ha",
+      "turns": [
+        "Sunana Halima, kuma ina zaune a Zinder.",
+        "A wane gari nake zaune? Ka amsa da kalma ɗaya."
+      ],
+      "final_answer_must_contain": ["zinder"]
+    }
+  ],
+  "stop": {
+    "natural_end": {
+      "user": "Reply with exactly one short sentence: what colour is a ripe banana?"
+    },
+    "length_limit": {
+      "user": "Write a long, detailed essay about the history of agriculture.",
+      "max_tokens": 16
+    },
+    "cancel": {
+      "user": "Count slowly from 1 to 300, one number per line.",
+      "abort_after_chunks": 8
+    }
+  },
+  "template_fixtures": [
+    {
+      "id": "first-turn",
+      "messages": [
+        {"role": "user", "content": "Hello"}
+      ]
+    },
+    {
+      "id": "system-message",
+      "messages": [
+        {"role": "system", "content": "SYSTEM_PROMPT"},
+        {"role": "user", "content": "Hello"}
+      ]
+    },
+    {
+      "id": "multi-turn",
+      "messages": [
+        {"role": "system", "content": "SYSTEM_PROMPT"},
+        {"role": "user", "content": "First question"},
+        {"role": "assistant", "content": "First answer"},
+        {"role": "user", "content": "Second question"}
+      ]
+    },
+    {
+      "id": "multilingual",
+      "messages": [
+        {"role": "system", "content": "SYSTEM_PROMPT"},
+        {"role": "user", "content": "Ina kwana? ƙ ɗ ɓ — ça va ? 🙂"},
+        {"role": "assistant", "content": "Lafiya lau."},
+        {"role": "user", "content": "Très bien, merci."}
+      ]
+    }
+  ]
+}

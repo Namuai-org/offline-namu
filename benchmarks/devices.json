@@ -1,0 +1,14 @@
+{
+  "_comment": "QA-001: record exact model numbers, SoCs and installed OS versions. A category name is not a benchmark result. Entries below are the REQUIRED TEST ROLES with no device recorded yet.",
+  "schema": 1,
+  "devices": [
+    {"role": "android-min-6gb-samsung", "purpose": "Minimum target class", "model": null, "soc": null, "ramBytes": null, "os": null, "thermalApi": null, "status": "not-acquired"},
+    {"role": "android-6gb-tecno-infinix-mediatek", "purpose": "Deployment-relevant OEM and CPU variation", "model": null, "soc": null, "ramBytes": null, "os": null, "thermalApi": null, "status": "not-acquired"},
+    {"role": "android-8gb-redmi-xiaomi-snapdragon", "purpose": "Second OEM, storage and scheduler behaviour", "model": null, "soc": null, "ramBytes": null, "os": null, "thermalApi": null, "status": "not-acquired"},
+    {"role": "android-pixel-reference", "purpose": "Current Android, profiling and compatibility", "model": null, "soc": null, "ramBytes": null, "os": null, "thermalApi": null, "status": "not-acquired"},
+    {"role": "ios-iphone-13-pro-6gb", "purpose": "Older Metal / 6 GB qualification", "model": null, "soc": null, "ramBytes": null, "os": null, "thermalApi": "ProcessInfo.thermalState", "status": "not-acquired"},
+    {"role": "ios-iphone-15-pro-8gb", "purpose": "Higher-memory reference", "model": null, "soc": null, "ramBytes": null, "os": null, "thermalApi": "ProcessInfo.thermalState", "status": "not-acquired"}
+  ],
+  "qualified": [],
+  "excluded": []
+}

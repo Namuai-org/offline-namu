@@ -1,0 +1,10 @@
+# Terraform working files and anything account-specific
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+backend.hcl
+terraform.tfvars
+*.auto.tfvars

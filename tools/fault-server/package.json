@@ -1,0 +1,5 @@
+{
+  "private": true,
+  "description": "Namu fault-injection server. No dependencies. \"main\" exists only so that `node --test tools/fault-server/` works on Node 22+ (see run-tests.mjs).",
+  "main": "run-tests.mjs"
+}

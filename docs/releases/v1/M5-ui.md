@@ -21,6 +21,12 @@ formatting.
 | S09 Help / recovery | yes | — | support contact hidden until an address is configured |
 | S10 About the AI | yes | — | licence text vendored, pending legal review |
 
+**Brand (PA-005, owner-approved).** Token revision `namu-brand-1`: Harmattan /
+Ink / Sahel / Dry Clay / Kola, DM Sans only, pill controls, Apple-style glass
+(native `UIGlassEffect` on iOS 26+, thin-material blur on iOS 17–25, token
+fallback on Android), centred titles, no taglines. Captures from the iOS
+simulator are in `screenshots/` (light and dark).
+
 **Verified:** `npm run check:contrast` (38 token pairs, DS-004);
 `npm run check:locales` (identical keys/placeholders/plurals, T25);
 15 UI journey tests with fake native adapters.
@@ -30,6 +36,6 @@ formatting.
   three languages `draft`; `check-locales.js --release` fails until reviewed.
   The Hausa and French strings were machine-drafted and **must not ship
   unreviewed**.
-* Light / dark / 200 % text screenshots and T24 TalkBack / VoiceOver passes.
+* iOS simulator light/dark captures exist; 200 % text, landscape, Android, and T24 TalkBack / VoiceOver passes are open.
 * DM Sans has no ƙ ɗ ɓ ƴ glyphs (system fallback) — reviewer judgement needed.
 * Hardware Ctrl/Cmd+Enter and IME behaviour on real keyboards.

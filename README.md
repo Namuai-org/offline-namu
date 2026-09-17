@@ -9,10 +9,13 @@ The product specification is [`docs/PRD.md`](docs/PRD.md). It is the source of
 truth; where code and PRD disagree, fix the code or amend the PRD (IMP-002).
 
 > **Status — read this first.** The code base implements milestones M0–M6 as
-> far as they can be built and tested on a development machine. It has **not**
-> been run on a physical phone, the model artifact has **not** been acquired
-> (PRD-007 rights gate), no infrastructure exists, and the Hausa/French strings
-> are unreviewed drafts. The honest per-milestone state is in
+> far as they can be built and tested on a development machine, and the whole
+> setup → chat journey runs on the iOS simulator (with a scripted engine and a
+> fixture artifact). It has **not** been run on a physical phone, the Android
+> app module has **not** been assembled (no Android SDK on the bootstrap
+> machine), the model artifact has **not** been acquired (PRD-007 rights
+> gate), no infrastructure exists, and the Hausa/French strings are unreviewed
+> drafts. The honest per-milestone state is in
 > [`docs/releases/v1/`](docs/releases/v1/README.md).
 
 ## Layout (PRD section 4)

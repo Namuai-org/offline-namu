@@ -152,6 +152,12 @@ ensure_script_phase(
   before: 'Bundle React Native code and images'
 )
 
+# Appended last so it runs after "[CP] Embed Pods Frameworks".
+ensure_script_phase(
+  app, 'Namu simulator llama (Intel)',
+  "\"${SRCROOT}/scripts/swap_llama_sim_x86.sh\"\n"
+)
+
 # ---------------------------------------------------------------------------
 # unit-test target
 # ---------------------------------------------------------------------------

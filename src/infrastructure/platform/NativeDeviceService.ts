@@ -15,7 +15,8 @@ export class NativeDeviceService implements DeviceService {
     return {
       appVersion: c.appVersion,
       appBuild: c.appBuild,
-      osName: c.osName === 'ios' ? 'ios' : 'android',
+      // Native reports a display name ("iOS"); the domain uses lower-case identifiers.
+      osName: c.osName.toLowerCase() === 'ios' ? 'ios' : 'android',
       osVersion: c.osVersion,
       deviceModel: c.deviceModel,
       isSimulator: c.isSimulator,

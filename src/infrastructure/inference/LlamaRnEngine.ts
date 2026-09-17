@@ -4,7 +4,7 @@
  * b10256). Mapping of every PRD section 9 setting to the pinned API is
  * documented in docs/engineering/runtime-contract.md (INF-001).
  */
-import {BuildInfo, initLlama, type LlamaContext, type TokenData} from 'llama.rn';
+import {BuildInfo, getBackendDevicesInfo, initLlama, type LlamaContext, type TokenData} from 'llama.rn';
 import type {
   ChatMessage,
   EngineState,
@@ -81,13 +81,18 @@ export class LlamaRnEngine implements NamuEngine {
     this.engineState = 'loading';
     try {
       const path = await this.deps.resolveArtifactPath(artifactId);
+      const cpuDevices = this.deps.allowCpuOnIosSimulator ? await cpuDeviceNames() : null;
       const context = await initLlama({
         model: path,
         n_ctx: p.nCtx,
         n_batch: p.batch,
         n_ubatch: p.ubatch,
         n_threads: p.threads,
-        n_gpu_layers: p.gpuLayers,
+        n_gpu_layers: cpuDevices ? 0 : p.gpuLayers,
+        // The simulator's Metal device is emulated. llama.rn zeroes the GPU
+        // layers there but leaves that device selected, so llama.cpp offloads
+        // every prompt batch to it; naming the CPU devices keeps it out.
+        ...(cpuDevices ? {devices: cpuDevices} : {}),
         n_parallel: p.parallel,
         cache_type_k: p.cacheTypeK as 'f16',
         cache_type_v: p.cacheTypeV as 'f16',
@@ -276,6 +281,11 @@ export class LlamaRnEngine implements NamuEngine {
       }
     };
 
+    // Wall-clock phases. llama.rn's own prompt timer was seen to carry time over
+    // from a previously cancelled request (prefill reported longer than the
+    // whole generation), so diagnostics use these instead.
+    const startedAt = Date.now();
+    let firstTokenAt: number | null = null;
     try {
       const result = await context.completion(
         {
@@ -297,6 +307,7 @@ export class LlamaRnEngine implements NamuEngine {
           if (this.activeRequestId !== requestId || typeof data.token !== 'string') {
             return;
           }
+          firstTokenAt ??= Date.now();
           raw += data.token;
           emitSafePrefix(false);
         },
@@ -335,11 +346,7 @@ export class LlamaRnEngine implements NamuEngine {
         reason,
         promptTokens: result.tokens_evaluated,
         outputTokens: result.tokens_predicted,
-        timings: {
-          prefillMs: result.timings?.prompt_ms,
-          decodeMs: result.timings?.predicted_ms,
-          tokensPerSecond: result.timings?.predicted_per_second,
-        },
+        timings: phaseTimings(startedAt, firstTokenAt, Date.now(), result.tokens_predicted),
       };
     } catch (error) {
       if (this.cancelRequested) {
@@ -431,6 +438,25 @@ export class LlamaRnEngine implements NamuEngine {
     }
     return this.context;
   }
+}
+
+function phaseTimings(startedAt: number, firstTokenAt: number | null, endedAt: number, outputTokens: number) {
+  if (firstTokenAt === null) {
+    return {prefillMs: endedAt - startedAt, decodeMs: 0, tokensPerSecond: 0};
+  }
+  const decodeMs = endedAt - firstTokenAt;
+  return {
+    prefillMs: firstTokenAt - startedAt,
+    decodeMs,
+    // The first token is produced by the prefill pass, not by a decode step.
+    tokensPerSecond: decodeMs > 0 && outputTokens > 1 ? ((outputTokens - 1) * 1000) / decodeMs : 0,
+  };
+}
+
+/** Internal simulator builds only (DEV-001). Null leaves the runtime's own device choice. */
+async function cpuDeviceNames(): Promise<string[] | null> {
+  const names = (await getBackendDevicesInfo()).filter(d => d.type === 'cpu').map(d => d.deviceName);
+  return names.length > 0 ? names : null;
 }
 
 function looksLikeMemoryFailure(error: unknown): boolean {

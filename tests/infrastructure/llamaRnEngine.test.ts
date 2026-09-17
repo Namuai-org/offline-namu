@@ -8,12 +8,14 @@ const mockNative = {
   stopCompletion: jest.fn(async () => undefined),
   release: jest.fn(async () => undefined),
   clearCache: jest.fn(async () => undefined),
+  getBackendDevicesInfo: jest.fn(),
   formatDelayMs: 0,
 };
 
 jest.mock('llama.rn', () => ({
   BuildInfo: {number: '10256', commit: 'test'},
   initLlama: (...args: unknown[]) => mockNative.initLlama(...args),
+  getBackendDevicesInfo: () => mockNative.getBackendDevicesInfo(),
 }));
 
 import {LlamaRnEngine} from '../../src/infrastructure/inference/LlamaRnEngine';
@@ -33,7 +35,7 @@ function makeContext(gpu: boolean) {
   };
 }
 
-function makeEngine(platform: 'android' | 'ios' = 'android') {
+function makeEngine(platform: 'android' | 'ios' = 'android', allowCpuOnIosSimulator = false) {
   const references: (string | null)[] = [];
   const diagnostics: string[] = [];
   const engine = new LlamaRnEngine({
@@ -41,7 +43,7 @@ function makeEngine(platform: 'android' | 'ios' = 'android') {
     parameters: resolveParameters(platform, 8),
     resolveArtifactPath: async () => '/verified/model.gguf',
     setRuntimeReference: id => void references.push(id),
-    allowCpuOnIosSimulator: false,
+    allowCpuOnIosSimulator,
     diagnostics: {record: code => void diagnostics.push(code)},
   });
   return {engine, references, diagnostics};
@@ -57,6 +59,10 @@ beforeEach(() => {
   jest.clearAllMocks();
   mockNative.formatDelayMs = 0;
   mockNative.initLlama.mockImplementation(async () => makeContext(false));
+  mockNative.getBackendDevicesInfo.mockImplementation(async () => [
+    {backend: 'Metal', type: 'gpu', deviceName: 'Metal', maxMemorySize: 0},
+    {backend: 'CPU', type: 'cpu', deviceName: 'CPU', maxMemorySize: 0},
+  ]);
 });
 
 describe('INF-001 configuration mapping', () => {
@@ -94,6 +100,23 @@ describe('INF-001 configuration mapping', () => {
     mockNative.initLlama.mockImplementation(async () => makeContext(true));
     const android = makeEngine('android');
     await expect(android.engine.load('a')).rejects.toMatchObject({code: 'MODEL_LOAD_FAILED'});
+  });
+});
+
+describe('DEV-001 internal simulator builds', () => {
+  it('keeps the emulated Metal device out of the context by naming the CPU devices', async () => {
+    const {engine} = makeEngine('ios', true);
+    await engine.load('artifact');
+    expect(mockNative.initLlama).toHaveBeenCalledWith(expect.objectContaining({n_gpu_layers: 0, devices: ['CPU']}));
+  });
+
+  it('never restricts devices on a real device', async () => {
+    mockNative.initLlama.mockImplementation(async () => makeContext(true));
+    const {engine} = makeEngine('ios');
+    await engine.load('artifact');
+    expect(mockNative.getBackendDevicesInfo).not.toHaveBeenCalled();
+    expect(mockNative.initLlama.mock.calls[0][0]).toEqual(expect.objectContaining({n_gpu_layers: 99}));
+    expect(mockNative.initLlama.mock.calls[0][0]).not.toHaveProperty('devices');
   });
 });
 

@@ -37,13 +37,13 @@ export const Composer = React.forwardRef<
     onStop: () => void;
   }
 >(function Composer({conversationId, mode, blocked, readOnly, onSend, onStop}, ref) {
-  const {t, i18n} = useTranslation();
+  const {t} = useTranslation();
   const {colors} = useNamuTheme();
   const services = useServices();
-  // Neither platform ships a Hausa dictionary: English autocorrect rewrites
-  // Hausa words ("Sannu" became "Danny" on the simulator), so it is off when
-  // the app language is Hausa. French and English keep the OS behaviour.
-  const assistTyping = i18n.language !== 'ha';
+  // Neither platform ships a Hausa dictionary, and autocorrect follows the
+  // keyboard, not the app language: with an English keyboard "Sannu! Yaya ake
+  // shuka masara?" was sent as "Danny! Yaya ale Shula mascara?". People write
+  // Hausa here whatever the UI language is, so the composer never rewrites text.
   const draftKey = conversationId ?? NEW_CHAT_DRAFT_KEY;
   const [text, setText] = useState('');
   const [focused, setFocused] = useState(false);
@@ -54,6 +54,8 @@ export const Composer = React.forwardRef<
   const latestForKey = useRef('');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sending = useRef(false);
+  /** The send awaiting its commit; that commit owns the draft row (CHAT-001). */
+  const inFlight = useRef<{key: string; value: string} | null>(null);
 
   const persist = (key: string, value: string) => {
     if (services.drafts && codePointLength(value) <= DRAFT_MAX_CODE_POINTS) {
@@ -96,7 +98,13 @@ export const Composer = React.forwardRef<
         clearTimeout(saveTimer.current);
         saveTimer.current = null;
       }
-      persist(draftKey, latestForKey.current);
+      // The first message of a new chat switches this composer to the new
+      // conversation while its send is still awaited. The commit has already
+      // cleared that draft; saving it again would bring the sent text back.
+      const pending = inFlight.current;
+      if (!(pending && pending.key === draftKey && pending.value === latestForKey.current)) {
+        persist(draftKey, latestForKey.current);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey]);
@@ -140,8 +148,14 @@ export const Composer = React.forwardRef<
     }
     sending.current = true;
     const value = textRef.current;
+    const key = keyRef.current;
+    inFlight.current = {key, value};
     try {
       const accepted = await onSend(value);
+      if (!accepted && keyRef.current !== key) {
+        // Refused after the composer moved on: the text is still the user's draft.
+        persist(key, value);
+      }
       // Only a durable commit clears the composer (CHAT-001).
       if (accepted && textRef.current === value) {
         if (saveTimer.current) {
@@ -153,6 +167,7 @@ export const Composer = React.forwardRef<
         setText('');
       }
     } finally {
+      inFlight.current = null;
       sending.current = false;
     }
   };
@@ -187,8 +202,8 @@ export const Composer = React.forwardRef<
             onChangeText={change}
             editable={!readOnly}
             multiline
-            autoCorrect={assistTyping}
-            spellCheck={assistTyping}
+            autoCorrect={false}
+            spellCheck={false}
             // Mobile Return inserts a newline; it never sends (A11Y-002).
             submitBehavior="newline"
             scrollEnabled

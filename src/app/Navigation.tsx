@@ -65,6 +65,8 @@ export function Navigation({reduceMotion}: {reduceMotion: boolean}): React.JSX.E
           // a centred DM Sans title. Android has no system blur: near-opaque tint.
           headerTransparent: true,
           headerBlurEffect: theme.dark ? 'systemThinMaterialDark' : 'systemThinMaterialLight',
+          // iOS 26 adds its own scroll-edge blur; two stacked effects muddy the header.
+          scrollEdgeEffects: {top: 'hidden', bottom: 'hidden', left: 'hidden', right: 'hidden'},
           headerStyle: {backgroundColor: Platform.OS === 'ios' ? 'transparent' : theme.colors.glassFallback},
           headerTintColor: theme.colors.textPrimary,
           headerTitleAlign: 'center',

@@ -81,6 +81,18 @@ describe('T02 / NFR-012 local chat journey in airplane mode', () => {
     expect(world.transfer.calls).toContain('sessionSuccess');
   });
 
+  it('does not bring the first message of a chat back as the new-chat draft', async () => {
+    await bootIntoChat();
+    await sendMessage('Sannu');
+    await idle();
+    await waitFor(() => screen.getByText(/fake/));
+    await fireEvent.press(screen.getByTestId('chat-new'));
+    await waitFor(() => screen.getByTestId('chat-empty'));
+    // Let the draft load settle, then the composer must still be empty.
+    await act(async () => new Promise(resolve => setTimeout(resolve, 50)));
+    expect(screen.getByTestId('composer-input').props.value).toBe('');
+  });
+
   it('keeps the draft and shows INPUT_TOO_LONG when the prompt budget overflows (T19)', async () => {
     await bootIntoChat();
     const long = 'word '.repeat(2300);

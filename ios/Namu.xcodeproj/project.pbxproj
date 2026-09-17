@@ -314,6 +314,7 @@
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				00EEFC60759A1932668264C0 /* [CP] Embed Pods Frameworks */,
 				E235C05ADACE081382539298 /* [CP] Copy Pods Resources */,
+				52E92CD7AFE65F420A02A622 /* Namu simulator llama (Intel) */,
 			);
 			buildRules = (
 			);
@@ -436,6 +437,26 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/scripts/copy_trust_config.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		52E92CD7AFE65F420A02A622 /* Namu simulator llama (Intel) */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Namu simulator llama (Intel)";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/scripts/swap_llama_sim_x86.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		810A95C5F8F7BEDBD038739C /* Namu debug ATS localhost */ = {

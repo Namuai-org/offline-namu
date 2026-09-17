@@ -8,7 +8,7 @@ were not measured.
 | Milestone | State | Evidence |
 |---|---|---|
 | M0 — Foundation and rights | **partial** — stack initialized, dependencies pinned, assets imported; rights record, app-ID registration, Android build and Gradle verification metadata open | [M0-foundation.md](M0-foundation.md) |
-| M1 — Artifact and runtime | **open gate** — adapter, fixture and tools built; artifact not acquired; no physical-device run | [M1-artifact-runtime.md](M1-artifact-runtime.md) |
+| M1 — Artifact and runtime | **open gate** — artifact acquired and locked; real model runs in the iOS app on a simulator (Hausa/French/English, stop, token parity); no physical-device run, no desktop reference render | [M1-artifact-runtime.md](M1-artifact-runtime.md) |
 | M2 — Durable data | **built and tested off-device** | [M2-data.md](M2-data.md) |
 | M3 — Model delivery | **built; protocol tested on JVM / simulator against a fault server**; infrastructure not provisioned | [M3-delivery.md](M3-delivery.md) |
 | M4 — Chat behaviour | **built and tested with the fake engine**; T14–T19 on real devices open | [M4-chat.md](M4-chat.md) |

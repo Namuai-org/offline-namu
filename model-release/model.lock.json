@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "repo_id": "CohereLabs/tiny-aya-global-GGUF",
+  "revision": "a602ea7eeec3a4ad6f77a1b8cf6a53512824922b",
+  "filename": "tiny-aya-global-q4_k_m.gguf",
+  "bytes": 2143977056,
+  "sha256": "d01d995272af305b2b843efcff8a10cf9869cf53e764cb72b0e91b777484570a",
+  "architecture": "cohere2",
+  "quantization": "Q4_K_M"
+}

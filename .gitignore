@@ -82,3 +82,4 @@ tools/fonts/upstream/
 android/app/src/main/assets/namu/
 ios/Namu/NamuConfig/*.json
 *.pem
+ios/.llama-sim/

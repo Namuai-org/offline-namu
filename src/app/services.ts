@@ -53,7 +53,7 @@ export interface PlatformAdapters {
     logicalCpuCount: number;
     transfer: TransferService;
     diagnostics: {record(code: string, fields?: Record<string, number | string | boolean | null | undefined>): void};
-  }): NamuEngine;
+  }): NamuEngine | Promise<NamuEngine>;
   announce(message: string): void;
 }
 
@@ -116,7 +116,7 @@ export async function createAppServices(adapters: PlatformAdapters): Promise<App
   const profile = await device.profile().catch(() => null);
   const logicalCpuCount = profile?.logicalCpuCount ?? 4;
   const platform = Platform.OS === 'ios' ? 'ios' : 'android';
-  const engine = adapters.createEngine({info, logicalCpuCount, transfer, diagnostics: {record}});
+  const engine = await adapters.createEngine({info, logicalCpuCount, transfer, diagnostics: {record}});
   const ownership = new EngineOwnership();
 
   const setPreference = async <K extends keyof Preferences>(key: K, value: Preferences[K]) => {

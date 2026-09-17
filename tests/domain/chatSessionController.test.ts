@@ -44,6 +44,15 @@ describe('send pipeline (CHAT-001, INF-007)', () => {
     expect(prompt[0]!.content).not.toContain('Hello Namu');
   });
 
+  it('stores and prompts with the message minus surrounding blank lines', async () => {
+    const outcome = await h.controller.send(null, '\n  Sannu\n\n');
+    await waitForIdle(h.controller);
+    expect(outcome.accepted).toBe(true);
+    const {rows} = await h.t.db.read('SELECT user_text FROM turns', []);
+    expect(rows.map(r => r.user_text)).toEqual(['Sannu']);
+    expect(h.engine.prompts[0]!.at(-1)).toEqual({role: 'user', content: 'Sannu'});
+  });
+
   it('reports the successful session only once (DL-013)', async () => {
     const first = await h.controller.send(null, 'one');
     await waitForIdle(h.controller);

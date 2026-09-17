@@ -326,7 +326,8 @@ export class ChatSessionController {
       language = conversation.responseLanguage;
       beforeOrdinal = turn.ordinal;
     } else {
-      userText = request.text;
+      // Surrounding blank lines (a trailing Return is common) are not content.
+      userText = request.text.trim();
       const conversation = request.conversationId ? await conversations.get(request.conversationId) : null;
       language = conversation?.responseLanguage ?? request.language ?? this.deps.defaultResponseLanguage();
       beforeOrdinal = Number.MAX_SAFE_INTEGER;

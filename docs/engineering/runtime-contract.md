@@ -96,17 +96,32 @@ once the real count is measured on device.
   control-token text inside *user* content in the prompt copy only, because the
   runtime tokenizes prompts with special-token parsing enabled.
 
-## 4. Open M1 verification items (need hardware + the artifact)
+## 4. M1 verification items
 
-1. `acquire.py` run and `model.lock.json` committed (blocked on PRD-007
-   authorization). Upstream currently reports 2,143,977,056 bytes and SHA-256
-   `d01d995272af305b2b843efcff8a10cf9869cf53e764cb72b0e91b777484570a`; these are
-   **unverified upstream metadata** and must not be used as a lock.
-2. Reference render of the template (desktop `llama.cpp` b10256) vs the mobile
-   `getFormattedChat` output for the fixtures: first turn, multi-turn, system
-   message, multilingual input.
-3. `tokens_evaluated == counted` on both platforms.
-4. Stop markers end answers without leaking; Hausa, French, English; multi-turn.
-5. Cancel during prefill and decode: native acknowledgement P95 ≤ 1 s.
-6. iOS Metal initialises with `n_gpu_layers = 99`; Android stays on CPU.
-7. `clearCache(true)` cost on target devices (it is on the first-token path).
+Status after the first real-model run (iOS simulator, CPU backend, 2026-09-17;
+details in `docs/releases/v1/M1-artifact-runtime.md`):
+
+1. **Done.** `acquire.py` run and `model.lock.json` committed; the local file
+   reproduces the header-derived fixture exactly.
+2. Open. Reference render of the template (desktop `llama.cpp` b10256) vs the
+   mobile `getFormattedChat` output for the fixtures.
+3. **Confirmed on iOS simulator** (`tokens_evaluated == counted` for 517, 535,
+   569, 572, 806 and 905-token prompts). Open on Android and on devices.
+4. **Confirmed on iOS simulator** for English, Hausa and French, first turn and
+   multi-turn: answers end on a stop marker/EOS with nothing leaked. Open on
+   Android and on devices.
+5. Cancel during prefill and decode works and never hit the 5 s timeout, even
+   on a laptop CPU. The P95 ≤ 1 s measurement needs devices.
+6. Open. iOS Metal with `n_gpu_layers = 99`; Android stays on CPU.
+7. Open. `clearCache(true)` cost on target devices.
+
+### Simulator-only behaviour (DEV-001)
+
+* llama.rn disables Metal on the simulator by setting `n_gpu_layers = 0`, but it
+  does not remove the (emulated) Metal device from the context, so llama.cpp
+  still offloads prompt batches to it. The adapter passes
+  `devices: [<cpu devices>]` for internal simulator builds only; real devices
+  never receive a `devices` override.
+* `result.timings.prompt_ms` exceeded the whole generation's wall time once,
+  directly after a cancelled completion (cause not traced). The adapter reports
+  wall-clock prefill/decode instead.

@@ -20,6 +20,9 @@ change a threshold, the model, or scope needs a versioned PRD amendment
 | D-12 | Crash marker for native loads lives in the chat DB (`preferences.nativeLoadMarker`, `synchronous=FULL`). | Durable before the load starts; safe mode never auto-loads. | ERR-001 |
 | D-13 | Icons are a subset *font* (47 glyphs, 10 KB) rather than an SVG dependency. | No extra native module; one consistent Material Symbols Rounded set. | DS-003 |
 | D-14 | The model licence text is vendored mechanically by a release tool, with provenance digests, and awaits legal review. | S10 requires offline-readable notices; the text must be verbatim. | S10, PRD-007 |
+| D-15 | The composer never autocorrects or spell-checks. | Autocorrect follows the keyboard language; English keyboards rewrite Hausa ("Sannu" → "Danny") whatever the UI language is. | LANG, S04 |
+| D-16 | Intel-Mac simulators get an AVX2 rebuild of the pinned llama.rn sources, swapped in by a Debug-only build phase. | Upstream's simulator slice has no SIMD; the 3.35B model cannot be exercised otherwise. Device/Release builds keep the shipped binary. | DEV-001, STK-002 |
+| D-17 | Internal simulator builds pick the real engine when the bundled descriptor is a real model (≥ 500 MB) and the scripted engine for the small fixture. | One build serves UI journeys and real-model checks without a runtime selector. | DEV-001, PRD-002 |
 
 ## Known gaps and findings
 

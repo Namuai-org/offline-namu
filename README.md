@@ -9,14 +9,15 @@ The product specification is [`docs/PRD.md`](docs/PRD.md). It is the source of
 truth; where code and PRD disagree, fix the code or amend the PRD (IMP-002).
 
 > **Status — read this first.** The code base implements milestones M0–M6 as
-> far as they can be built and tested on a development machine, and the whole
-> setup → chat journey runs on the iOS simulator (with a scripted engine and a
-> fixture artifact). It has **not** been run on a physical phone, the Android
-> app module has **not** been assembled (no Android SDK on the bootstrap
-> machine), the model artifact has **not** been acquired (PRD-007 rights
-> gate), no infrastructure exists, and the Hausa/French strings are unreviewed
-> drafts. The honest per-milestone state is in
-> [`docs/releases/v1/`](docs/releases/v1/README.md).
+> far as they can be built and tested on a development machine. The model
+> artifact is acquired and locked (`model-release/model.lock.json`), and the
+> whole setup → download → verify → self-test → chat journey has run on the iOS
+> simulator with the **real** Tiny Aya model (Hausa, French, English, stop and
+> retry). It has **not** been run on a physical phone, the Android app module
+> has **not** been assembled (no Android SDK on the bootstrap machine), no
+> infrastructure exists, the PRD-007 rights record is still the owner's to
+> file, and the Hausa/French strings are unreviewed drafts. The honest
+> per-milestone state is in [`docs/releases/v1/`](docs/releases/v1/README.md).
 
 ## Layout (PRD section 4)
 
@@ -71,9 +72,11 @@ cd android/namu-core && ./gradlew test
 ### Running an internal build
 
 Internal builds (`org.namuai.offline.internal`) trust a locally generated
-**development** signing key and talk to the local fault server. Simulators use
-a scripted engine (functional journeys only, DEV-001); real devices load the
-real model.
+**development** signing key and talk to the local fault server. With the small
+fixture GGUF a simulator uses a scripted engine (functional journeys only,
+DEV-001); bundled with the real model it loads the real runtime on the CPU. On
+an Intel Mac run `ios/scripts/build_llama_sim_x86.sh` once first
+(docs/engineering/ios-native-notes.md).
 
 ```bash
 node model-release/dev/make-dev-bundle.mjs --model <path/to/model.gguf>

@@ -111,3 +111,36 @@ If Xcode's SDK has no matching simulator runtime installed at all, xcodebuild
 offers no simulator destinations; either install the platform
 (`xcodebuild -downloadPlatform iOS`) or map the SDK to an installed runtime with
 `xcrun simctl runtime match set iphoneos<sdk> <runtime build>` (undo: `--default`).
+
+## Running the real model on a simulator
+
+An internal Debug build bundled with a **real** model descriptor
+(`make-dev-bundle.mjs --model model-release/artifacts/tiny-aya-global-q4_k_m.gguf`)
+loads the real llama.rn engine on the simulator; with the small fixture GGUF it
+keeps the scripted engine (decision D-17). The simulator has no usable Metal, so
+the adapter pins the context to the CPU devices there.
+
+**Intel Macs.** llama.rn ships its simulator framework with
+`LM_GGML_CPU_GENERIC` (no SIMD). On an Intel host that makes the 3.35B model
+unusable (minutes per answer). Build the AVX2 variant once:
+
+```bash
+ios/scripts/build_llama_sim_x86.sh
+```
+
+It compiles llama.rn's own `ios/CMakeLists.txt` from `node_modules/llama.rn`
+(same pinned llama.cpp b10256) for `x86_64` with the x86 kernels and
+`-mavx2 -mfma -mf16c -mbmi2`, and writes `ios/.llama-sim/rnllama-x86_64`
+(git-ignored, ~15 minutes). The Debug-only build phase "Namu simulator llama
+(Intel)" (`swap_llama_sim_x86.sh`) then replaces the x86_64 slice of the
+embedded `rnllama.framework` in **simulator** app bundles and re-signs it.
+Device and Release builds never run that step. Apple-silicon Macs do not need
+it (the script exits early).
+
+Measured on an i7-1068NG7 with the AVX2 slice: load 4–6 s, prefill ≈ 22
+tokens/s, decode ≈ 8.5 tokens/s. These are laptop-CPU numbers and say nothing
+about phones.
+
+The simulator's own `mediaanalysisd` can pin several host cores for hours after
+a fresh boot and starves inference; if answers crawl, check `ps` for it and
+`kill` it (it is a simulator daemon, not part of the app).

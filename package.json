@@ -1,0 +1,77 @@
+{
+  "name": "namu",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "lint": "eslint . --ext .js,.ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "check:locales": "node src/locales/check-locales.js",
+    "check:contrast": "node src/design/check-contrast.js",
+    "check:arch": "node tests/arch/check-boundaries.js",
+    "verify": "npm run typecheck && npm run lint && npm run check:locales && npm run check:contrast && npm run check:arch && npm test"
+  },
+  "dependencies": {
+    "@op-engineering/op-sqlite": "18.2.3",
+    "@react-navigation/bottom-tabs": "7.19.1",
+    "@react-navigation/native": "7.4.1",
+    "@react-navigation/native-stack": "7.19.1",
+    "i18next": "26.4.2",
+    "llama.rn": "0.12.9",
+    "markdown-it": "15.0.2",
+    "react": "19.2.3",
+    "react-i18next": "17.0.14",
+    "react-native": "0.86.0",
+    "react-native-paper": "5.15.3",
+    "react-native-safe-area-context": "5.10.0",
+    "react-native-screens": "4.28.0",
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.7",
+    "@babel/preset-env": "7.29.7",
+    "@babel/runtime": "7.29.7",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native-community/cli-platform-android": "20.1.0",
+    "@react-native-community/cli-platform-ios": "20.1.0",
+    "@react-native/babel-preset": "0.86.0",
+    "@react-native/eslint-config": "0.86.0",
+    "@react-native/jest-preset": "0.86.0",
+    "@react-native/metro-config": "0.86.0",
+    "@react-native/typescript-config": "0.86.0",
+    "@testing-library/react-native": "14.0.1",
+    "@types/jest": "29.5.14",
+    "@types/markdown-it": "14.2.0",
+    "@types/react": "19.3.0",
+    "@types/react-test-renderer": "19.3.0",
+    "eslint": "8.57.1",
+    "jest": "29.7.0",
+    "prettier": "2.8.8",
+    "react-test-renderer": "19.2.3",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">= 22.11.0"
+  },
+  "op-sqlite": {
+    "fts5": true
+  },
+  "codegenConfig": {
+    "name": "NamuNativeSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/infrastructure/platform/specs",
+    "android": {
+      "javaPackageName": "org.namuai.offline.specs"
+    },
+    "ios": {
+      "modulesProvider": {
+        "NamuPlatform": "NamuPlatformModule",
+        "NamuTransfer": "NamuTransferModule",
+        "NamuExport": "NamuExportModule"
+      }
+    }
+  }
+}

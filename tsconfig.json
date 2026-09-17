@@ -1,0 +1,29 @@
+{
+  "extends": "@react-native/typescript-config",
+  "compilerOptions": {
+    "types": [
+      "jest",
+      "node"
+    ],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "allowJs": false
+  },
+  "include": [
+    "index.js",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "tests/**/*.ts",
+    "tests/**/*.tsx",
+    "benchmarks/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/Pods",
+    "android",
+    "ios"
+  ]
+}

@@ -42,7 +42,6 @@ export function PrivacyScreen(): React.JSX.Element {
       }
       await services.conversations?.deleteAll();
       await services.database?.checkpointTruncate().catch(() => undefined); // SEC-007
-      await services.setPreference('lastConversationId', null);
       useChatViewStore.getState().open(null);
       useAppStore.getState().touchConversations();
       services.device.haptic('success');

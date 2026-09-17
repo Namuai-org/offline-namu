@@ -240,11 +240,16 @@ final class PlatformService {
     return directory.path
   }
 
+  /// Bytes the person's chats cost on this device: the chat database and its
+  /// journal files only. Diagnostics and preference files in the same folder
+  /// are the app's own and are not counted (S07 "Saved chats size").
   func chatDataSizeBytes(at directory: URL = PlatformService.chatDataDirectoryURL()) -> Double {
-    PlatformService.directorySize(directory)
+    PlatformService.directorySize(directory) { $0.hasPrefix(PlatformService.chatDatabaseFileName) }
   }
 
-  static func directorySize(_ directory: URL) -> Double {
+  static let chatDatabaseFileName = "namu.sqlite"
+
+  static func directorySize(_ directory: URL, including: (String) -> Bool = { _ in true }) -> Double {
     let keys: Set<URLResourceKey> = [.isRegularFileKey, .fileSizeKey]
     guard let enumerator = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: Array(keys)) else {
       return 0
@@ -252,6 +257,7 @@ final class PlatformService {
     var total: Int64 = 0
     for case let file as URL in enumerator {
       guard let values = try? file.resourceValues(forKeys: keys), values.isRegularFile == true else { continue }
+      guard including(file.lastPathComponent) else { continue }
       total += Int64(values.fileSize ?? 0)
     }
     return Double(total)

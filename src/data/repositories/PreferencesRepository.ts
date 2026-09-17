@@ -15,6 +15,7 @@ export interface Preferences {
   /** S01 completed (language chosen and introduction acknowledged). */
   onboardingComplete: boolean;
   /** UX-001: reopened after launch without loading the model. */
+  /** Unused since PA-007 (launch opens a fresh chat); kept so stored rows still parse. */
   lastConversationId: string | null;
   /** ERR-001: set durably before a native load, cleared after it returns. */
   nativeLoadMarker: {startedAt: number; artifactSha256: string} | null;

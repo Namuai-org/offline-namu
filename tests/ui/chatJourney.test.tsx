@@ -106,6 +106,23 @@ describe('T02 / NFR-012 local chat journey in airplane mode', () => {
     expect(screen.getByTestId('composer-input').props.value).toBe('');
   });
 
+  it('opens a fresh chat after a relaunch; the previous one is in the drawer (PA-007)', async () => {
+    await bootIntoChat();
+    await sendMessage('Yesterday’s question');
+    await idle();
+    await waitFor(() => screen.getByText(/fake/));
+    expect(useChatViewStore.getState().conversationId).not.toBeNull();
+
+    // Same on-disk data, new process.
+    screen.unmount();
+    useChatViewStore.setState({conversationId: 'stale', targetOrdinal: null, nonce: 0});
+    await render(<App adapters={world.adapters} />);
+    await waitFor(() => screen.getByTestId('chat-empty'));
+    expect(useChatViewStore.getState().conversationId).toBeNull();
+    await openDrawer();
+    await waitFor(() => screen.getAllByText('Yesterday’s question'));
+  });
+
   it('keeps the draft and shows INPUT_TOO_LONG when the prompt budget overflows (T19)', async () => {
     await bootIntoChat();
     const long = 'word '.repeat(2300);

@@ -62,6 +62,7 @@ export default function App({adapters}: {adapters?: PlatformAdapters}): React.JS
       }
       if (state === 'background') {
         current.chat.onBackground();
+        void current.trimJournals();
       } else if (state === 'active') {
         void current.install.refresh().catch(() => undefined);
       }

@@ -39,6 +39,8 @@ export interface AppServices {
   /** SEC-006 Delete all Namu data. Resolves false when deletion was deferred. */
   deleteAllData(): Promise<boolean>;
   announce(message: string): void;
+  /** Folds the SQLite journals at a quiet moment (answer ended, app backgrounded). */
+  trimJournals(): Promise<void>;
   /** Detaches native listeners; called before services are rebuilt (SEC-006 restart). */
   dispose(): void;
 }
@@ -181,11 +183,21 @@ export async function createAppServices(adapters: PlatformAdapters): Promise<App
       // DS-004: haptics only on terminal success/error, never per token.
       device.haptic(status === 'complete' ? 'success' : status === 'stopped' ? 'action' : 'error');
       useAppStore.getState().touchConversations();
+      void trimJournals();
     },
     safeModeAtStart,
   });
 
   lazy.chat = chat;
+
+  // The answer is committed by now; folding the journals here keeps the
+  // on-device chat size honest and costs nothing the user can feel.
+  async function trimJournals(): Promise<void> {
+    if (writable) {
+      await database?.checkpointTruncate().catch(() => undefined);
+    }
+    await diagnostics?.checkpointTruncate().catch(() => undefined);
+  }
 
   // Mirrors for the UI.
   useAppStore.getState().setPreferences(preferences);
@@ -201,11 +213,9 @@ export async function createAppServices(adapters: PlatformAdapters): Promise<App
   const unsubscribeThermal = device.onThermalState(state => chat.onThermalState(state));
   device.thermalState().then(state => chat.onThermalState(state)).catch(() => undefined);
 
-  // UX-001: reopen the last viewed conversation without loading the model.
-  if (preferences.lastConversationId && conversations) {
-    const last = await conversations.get(preferences.lastConversationId).catch(() => null);
-    useChatViewStore.getState().open(last ? last.id : null);
-  }
+  // PA-007: a launch opens a fresh chat; history is one swipe away in the
+  // drawer. (UX-001's "reopen the last viewed conversation" is withdrawn.)
+  useChatViewStore.getState().open(null);
 
   const exporter = adapters.createExporter(directory);
   void exporter.sweep().catch(() => undefined); // SEC-005
@@ -250,6 +260,7 @@ export async function createAppServices(adapters: PlatformAdapters): Promise<App
     setPreference,
     deleteAllData,
     announce: adapters.announce,
+    trimJournals,
     dispose: () => {
       unsubscribeMemory();
       unsubscribeThermal();

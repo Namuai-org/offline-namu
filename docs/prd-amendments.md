@@ -141,6 +141,11 @@ approved by the owner and are implemented.
     appearance; each row shows its value and opens a choice list), Storage and
     data, Help and about (with the app version). Still no tuning controls, model
     selector or account (PRD-002).
+  * **Launch.** A launch opens a fresh chat; the previous conversation is one
+    swipe away in the drawer. UX-001's "reopen last viewed conversation after
+    launch" is withdrawn (owner instruction, same day). Returning from the
+    background keeps whatever was open, and CHAT-006's "Return to answer"
+    banner still leads back to a running answer.
 * Implementation notes: the drawer is plain `Animated` + `PanResponder` (no
   gesture library joins the locked stack); `@react-navigation/bottom-tabs` was
   removed. Reduce Motion gives a static drawer and a static thinking mark.

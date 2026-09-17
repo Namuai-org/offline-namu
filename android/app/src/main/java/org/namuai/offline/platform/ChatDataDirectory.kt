@@ -19,13 +19,17 @@ object ChatDataDirectory {
         return dir
     }
 
-    fun sizeBytes(context: Context): Long = sizeOf(directory(context))
+    /**
+     * Bytes the person's chats cost on this device: the chat database and its
+     * journal files only. The diagnostics ring and preference files in the same
+     * folder are the app's own and are not counted (S07 "Saved chats size").
+     */
+    fun sizeBytes(context: Context): Long =
+        directory(context).listFiles()
+            ?.filter { it.isFile && it.name.startsWith(CHAT_DATABASE_FILE_NAME) }
+            ?.sumOf { it.length() } ?: 0L
 
-    private fun sizeOf(file: File): Long {
-        if (!file.exists()) return 0L
-        if (file.isFile) return file.length()
-        return file.listFiles()?.sumOf { sizeOf(it) } ?: 0L
-    }
+    const val CHAT_DATABASE_FILE_NAME = "namu.sqlite"
 
     /** SEC-006. The JS side guarantees the chat database is closed and the engine unloaded. */
     fun deleteAll(context: Context): Boolean {

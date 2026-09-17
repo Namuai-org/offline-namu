@@ -79,9 +79,11 @@ final class PlatformServiceTests: XCTestCase {
 
     try Data(count: 1000).write(to: target.appendingPathComponent("namu.sqlite"))
     try Data(count: 234).write(to: target.appendingPathComponent("namu.sqlite-wal"))
-    try FileManager.default.createDirectory(at: target.appendingPathComponent("diagnostics"), withIntermediateDirectories: true)
-    try Data(count: 5).write(to: target.appendingPathComponent("diagnostics/ring.bin"))
-    XCTAssertEqual(service.chatDataSizeBytes(at: target), 1239)
+    try Data(count: 32).write(to: target.appendingPathComponent("namu.sqlite-shm"))
+    // The app's own diagnostics ring is not the person's chats (S07).
+    try Data(count: 4096).write(to: target.appendingPathComponent("namu-diagnostics.sqlite"))
+    try Data(count: 70000).write(to: target.appendingPathComponent("namu-diagnostics.sqlite-wal"))
+    XCTAssertEqual(service.chatDataSizeBytes(at: target), 1266)
 
     try service.deleteChatData(at: target)
     XCTAssertFalse(FileManager.default.fileExists(atPath: target.path))

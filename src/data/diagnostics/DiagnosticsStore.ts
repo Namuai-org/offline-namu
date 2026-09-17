@@ -111,6 +111,11 @@ export class DiagnosticsStore {
     await this.db.write(tx => tx.execute('DELETE FROM events').then(() => undefined));
   }
 
+  /** Trims the ring's journal at quiet moments; never blocks a recording. */
+  checkpointTruncate(): Promise<void> {
+    return this.db.checkpointTruncate();
+  }
+
   close(): Promise<void> {
     return this.db.close();
   }

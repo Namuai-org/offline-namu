@@ -135,7 +135,6 @@ export function ChatScreen(): React.JSX.Element {
       setHasNewer(false);
       return;
     }
-    void services.setPreference('lastConversationId', conversationId).catch(() => undefined);
     if (targetOrdinal !== null && services.chatRepository && services.conversations) {
       // DB-005: open the matching turn from search, in a window around it.
       const token = ++loadToken.current;

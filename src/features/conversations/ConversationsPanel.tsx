@@ -197,7 +197,6 @@ export function ConversationsPanel({
       await services.database?.checkpointTruncate().catch(() => undefined); // SEC-007
       if (currentChatId === deleting.id) {
         openChat(null);
-        void services.setPreference('lastConversationId', null);
       }
       useAppStore.getState().touchConversations();
     } catch {

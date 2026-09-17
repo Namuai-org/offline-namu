@@ -18,6 +18,9 @@ export class DatabaseReadOnlyError extends Error {
  * Connection wrapper enforcing DB-001: WAL, FULL synchronous, foreign keys,
  * 5 s busy timeout and one serialized asynchronous queue for the connection.
  */
+/** Size the WAL is trimmed back to at each checkpoint. */
+export const JOURNAL_SIZE_LIMIT_BYTES = 1024 * 1024;
+
 export class Database {
   private queue: Promise<unknown> = Promise.resolve();
   private closed = false;
@@ -34,6 +37,10 @@ export class Database {
     if (!readOnly) {
       await driver.execute('PRAGMA journal_mode = WAL');
       await driver.execute('PRAGMA synchronous = FULL');
+      // The WAL otherwise stays at its high-water mark (up to the 4 MB
+      // auto-checkpoint size) for the life of the connection, dwarfing the
+      // chats themselves. Checkpoints trim it back to this.
+      await driver.execute(`PRAGMA journal_size_limit = ${JOURNAL_SIZE_LIMIT_BYTES}`);
     }
     return new Database(driver, readOnly);
   }
@@ -81,7 +88,11 @@ export class Database {
     return result;
   }
 
-  /** SEC-007: truncate the WAL after user deletion when it is safe to do so. */
+  /**
+   * Folds the WAL into the main file and truncates it. SEC-007 after user
+   * deletion; also at quiet moments (answer finished, app backgrounded) so
+   * "Saved chats size" reflects the chats, not the journal.
+   */
   async checkpointTruncate(): Promise<void> {
     if (!this.readOnly) {
       await this.maintenance('PRAGMA wal_checkpoint(TRUNCATE)');

@@ -40,10 +40,10 @@ import {Composer, type ComposerHandle} from './Composer';
 /** S04: auto-scroll only within 80 logical pixels of the bottom. */
 const NEAR_BOTTOM_PX = 80;
 /** Errors shown as a notice above the composer (others are inline labels). */
-/** Named after the colour of the mark: the dark mark goes on the light theme. */
-const LOGO = {
-  onLight: require('../../design/assets/namu-logo-dark.png'),
-  onDark: require('../../design/assets/namu-logo-light.png'),
+/** The Namu mark alone (brand kit `namu-icon-transparent-*`), per theme. */
+const MARK = {
+  onLight: require('../../design/assets/namu-mark-on-light.png'),
+  onDark: require('../../design/assets/namu-mark-on-dark.png'),
 };
 
 const SUGGESTIONS: {icon: IconName; label: string; prompt: string; testID?: string}[] = [
@@ -475,10 +475,10 @@ export function ChatScreen(): React.JSX.Element {
           {showEmpty ? (
             <View testID="chat-empty" style={{flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg}}>
               <Image
-                source={dark ? LOGO.onDark : LOGO.onLight}
+                source={dark ? MARK.onDark : MARK.onLight}
                 resizeMode="contain"
                 accessible={false}
-                style={{width: 132, height: 48}}
+                style={{width: 72, height: 72}}
               />
               <NamuText variant="title" align="center" accessibilityRole="header">
                 {t('chat.emptyTitle')}
